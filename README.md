@@ -2,8 +2,9 @@
   <img src="appicon.png" alt="Mini Blog Explorer" width="100">
 </div>
 
-<div align="center"> # Mini Blog Explorer </div>
+<div align="center"> Mini Blog Explorer </div>
 
+<br>
 A clean, modern Android blog reader app built with Kotlin, Material Design 3, and coroutines.
 
 Fetches posts from [JSONPlaceholder](https://jsonplaceholder.typicode.com) API, displays them in a card-based list, lets you view comments on each post, and create new posts.
