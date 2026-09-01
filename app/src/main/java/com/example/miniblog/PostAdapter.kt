@@ -2,14 +2,15 @@ package com.example.miniblog
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.miniblog.databinding.ItemPostBinding
 import com.example.miniblog.model.Post
 
 class PostAdapter(
-    private val posts: List<Post>,
     private val onItemClick: (Post) -> Unit
-) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+) : ListAdapter<Post, PostAdapter.PostViewHolder>(PostDiffCallback()) {
 
     inner class PostViewHolder(val binding: ItemPostBinding) :
         RecyclerView.ViewHolder(binding.root)
@@ -24,7 +25,7 @@ class PostAdapter(
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = posts[position]
+        val post = getItem(position)
         holder.binding.textViewTitle.text = post.title.replaceFirstChar {
             it.uppercase()
         }
@@ -32,5 +33,13 @@ class PostAdapter(
         holder.binding.root.setOnClickListener { onItemClick(post) }
     }
 
-    override fun getItemCount(): Int = posts.size
+    class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
+        override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+            return oldItem == newItem
+        }
+    }
 }

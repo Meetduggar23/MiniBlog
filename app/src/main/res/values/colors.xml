@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Light mode colors -->
     <color name="primary">#FF1565C0</color>
     <color name="primary_dark">#FF0D47A1</color>
     <color name="primary_light">#FF42A5F5</color>
@@ -12,4 +13,6 @@
     <color name="error">#FFD32F2F</color>
     <color name="success_bg">#FFE8F5E9</color>
     <color name="success_text">#FF2E7D32</color>
+    <color name="error_bg">#FFFCE4EC</color>
+    <color name="error_text">#FFC62828</color>
 </resources>

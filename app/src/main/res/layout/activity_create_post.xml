@@ -10,7 +10,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        android:theme="@style/Theme.Miniblog.Toolbar">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -35,6 +35,7 @@
             android:padding="16dp">
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Title"
@@ -43,7 +44,9 @@
                 app:boxCornerRadiusTopEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusBottomEnd="8dp"
-                app:boxStrokeColor="@color/primary">
+                app:boxStrokeColor="@color/primary"
+                app:helperText="Required"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextTitle"
@@ -55,6 +58,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -64,7 +68,9 @@
                 app:boxCornerRadiusTopEnd="8dp"
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusBottomEnd="8dp"
-                app:boxStrokeColor="@color/primary">
+                app:boxStrokeColor="@color/primary"
+                app:helperText="Required"
+                app:helperTextEnabled="false">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextBody"
@@ -95,8 +101,9 @@
                 android:layout_marginTop="16dp"
                 android:visibility="gone" />
 
+            <!-- Success card (green) -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardResult"
+                android:id="@+id/cardSuccess"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -106,12 +113,33 @@
                 app:cardBackgroundColor="@color/success_bg">
 
                 <TextView
-                    android:id="@+id/textViewResult"
+                    android:id="@+id/textViewSuccess"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
                     android:textSize="14sp"
                     android:textColor="@color/success_text" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Error card (red) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/error_bg">
+
+                <TextView
+                    android:id="@+id/textViewError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/error_text" />
 
             </com.google.android.material.card.MaterialCardView>
 

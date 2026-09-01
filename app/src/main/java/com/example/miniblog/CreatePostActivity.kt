@@ -32,15 +32,28 @@ class CreatePostActivity : AppCompatActivity() {
         val title = binding.editTextTitle.text.toString().trim()
         val body = binding.editTextBody.text.toString().trim()
 
-        if (title.isEmpty() || body.isEmpty()) {
-            Toast.makeText(
-                this, "Please enter both title and body", Toast.LENGTH_SHORT
-            ).show()
-            return
+        // Clear previous validation states
+        binding.tilTitle.error = null
+        binding.tilTitle.isErrorEnabled = false
+        binding.tilBody.error = null
+        binding.tilBody.isErrorEnabled = false
+        binding.cardSuccess.visibility = View.GONE
+        binding.cardError.visibility = View.GONE
+
+        var hasError = false
+        if (title.isEmpty()) {
+            binding.tilTitle.error = "Title is required"
+            binding.tilTitle.isErrorEnabled = true
+            hasError = true
         }
+        if (body.isEmpty()) {
+            binding.tilBody.error = "Body is required"
+            binding.tilBody.isErrorEnabled = true
+            hasError = true
+        }
+        if (hasError) return
 
         binding.progressBarCreate.visibility = View.VISIBLE
-        binding.cardResult.visibility = View.GONE
         binding.buttonSubmit.isEnabled = false
 
         lifecycleScope.launch {
@@ -48,17 +61,22 @@ class CreatePostActivity : AppCompatActivity() {
                 is NetworkResult.Success -> {
                     binding.progressBarCreate.visibility = View.GONE
                     binding.buttonSubmit.isEnabled = true
-                    binding.textViewResult.text =
-                        "Post created!\n\nServer response:\n${result.data}"
-                    binding.cardResult.visibility = View.VISIBLE
+                    binding.textViewSuccess.text =
+                        "Post created successfully!\n\nServer response:\n${result.data}"
+                    binding.cardSuccess.visibility = View.VISIBLE
                     binding.editTextTitle.text?.clear()
                     binding.editTextBody.text?.clear()
+                    Toast.makeText(
+                        this@CreatePostActivity,
+                        "Post published!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
                 is NetworkResult.Error -> {
                     binding.progressBarCreate.visibility = View.GONE
                     binding.buttonSubmit.isEnabled = true
-                    binding.textViewResult.text = result.message
-                    binding.cardResult.visibility = View.VISIBLE
+                    binding.textViewError.text = result.message
+                    binding.cardError.visibility = View.VISIBLE
                 }
             }
         }

@@ -69,9 +69,9 @@ object NetworkClient {
         val builder = StringBuilder()
         var line: String?
         while (reader.readLine().also { line = it } != null) {
-            builder.append(line)
+            builder.appendLine(line)
         }
         reader.close()
-        return builder.toString()
+        return builder.toString().trim()
     }
 }

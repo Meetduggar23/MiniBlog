@@ -2,7 +2,11 @@ package com.example.miniblog
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,8 +21,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val repository = PostRepository()
-    private val postList = mutableListOf<Post>()
+    private var allPosts = listOf<Post>()
     private lateinit var adapter: PostAdapter
+    private var currentSearchQuery = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Mini Blog Explorer"
 
-        adapter = PostAdapter(postList) { post ->
+        adapter = PostAdapter { post ->
             val intent = Intent(this, PostDetailActivity::class.java)
             intent.putExtra("POST_ID", post.id)
             intent.putExtra("POST_TITLE", post.title)
@@ -46,12 +51,103 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, CreatePostActivity::class.java))
         }
 
-        loadPosts()
+        binding.buttonRetry.setOnClickListener {
+            loadPosts()
+        }
+
+        // Search filtering
+        binding.editTextSearch.addTextChangedListener(
+            object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    currentSearchQuery = s?.toString()?.trim() ?: ""
+                    filterPosts()
+                }
+            }
+        )
+
+        binding.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                filterPosts()
+                true
+            } else false
+        }
+
+        if (savedInstanceState != null) {
+            val savedTitles = savedInstanceState.getStringArrayList("post_titles")
+            val savedBodies = savedInstanceState.getStringArrayList("post_bodies")
+            val savedIds = savedInstanceState.getIntegerArrayList("post_ids")
+            if (savedIds != null && savedTitles != null && savedBodies != null &&
+                savedIds.isNotEmpty()) {
+                allPosts = savedIds.indices.map { i ->
+                    Post(userId = 1, id = savedIds[i], title = savedTitles[i], body = savedBodies[i])
+                }
+                filterPosts()
+                binding.progressBar.visibility = View.GONE
+                if (allPosts.isEmpty()) showEmpty("No posts found.")
+            } else {
+                loadPosts()
+            }
+        } else {
+            loadPosts()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                loadPosts()
+                true
+            }
+            R.id.action_about -> {
+                Toast.makeText(
+                    this,
+                    "Mini Blog Explorer v1.0\nPowered by jsonplaceholder.typicode.com",
+                    Toast.LENGTH_LONG
+                ).show()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putStringArrayList("post_titles", ArrayList(allPosts.map { it.title }))
+        outState.putStringArrayList("post_bodies", ArrayList(allPosts.map { it.body }))
+        outState.putIntegerArrayList("post_ids", ArrayList(allPosts.map { it.id }))
+    }
+
+    private fun filterPosts() {
+        val filtered = if (currentSearchQuery.isEmpty()) {
+            allPosts
+        } else {
+            allPosts.filter {
+                it.title.contains(currentSearchQuery, ignoreCase = true) ||
+                        it.body.contains(currentSearchQuery, ignoreCase = true)
+            }
+        }
+        adapter.submitList(filtered)
+
+        if (filtered.isEmpty() && allPosts.isNotEmpty()) {
+            showEmpty("No posts match \"$currentSearchQuery\"")
+        } else if (filtered.isEmpty()) {
+            // keep empty state
+        } else {
+            hideEmpty()
+        }
     }
 
     private fun loadPosts() {
         if (!NetworkUtils.isNetworkAvailable(this)) {
-            showMessage("No internet connection.")
+            showEmpty("No internet connection.")
+            binding.buttonRetry.visibility = View.VISIBLE
             binding.swipeRefresh.isRefreshing = false
             return
         }
@@ -61,15 +157,16 @@ class MainActivity : AppCompatActivity() {
                 is NetworkResult.Success -> {
                     showLoading(false)
                     binding.swipeRefresh.isRefreshing = false
-                    postList.clear()
-                    postList.addAll(result.data)
-                    adapter.notifyDataSetChanged()
-                    if (postList.isEmpty()) showMessage("No posts found.")
+                    allPosts = result.data
+                    filterPosts()
+                    if (allPosts.isEmpty()) showEmpty("No posts found.")
+                    else hideEmpty()
                 }
                 is NetworkResult.Error -> {
                     showLoading(false)
                     binding.swipeRefresh.isRefreshing = false
-                    showMessage(result.message)
+                    showEmpty(result.message)
+                    binding.buttonRetry.visibility = View.VISIBLE
                 }
             }
         }
@@ -78,11 +175,21 @@ class MainActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility =
             if (isLoading) View.VISIBLE else View.GONE
-        binding.textViewMessage.visibility = View.GONE
+        binding.layoutEmpty.visibility = View.GONE
+        binding.recyclerViewPosts.visibility =
+            if (isLoading) View.GONE else View.VISIBLE
     }
 
-    private fun showMessage(message: String) {
+    private fun showEmpty(message: String) {
+        binding.layoutEmpty.visibility = View.VISIBLE
         binding.textViewMessage.text = message
-        binding.textViewMessage.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerViewPosts.visibility = View.GONE
+    }
+
+    private fun hideEmpty() {
+        binding.layoutEmpty.visibility = View.GONE
+        binding.buttonRetry.visibility = View.GONE
+        binding.recyclerViewPosts.visibility = View.VISIBLE
     }
 }
