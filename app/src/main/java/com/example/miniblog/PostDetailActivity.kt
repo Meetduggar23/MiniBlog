@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.miniblog.data.PostRepository
@@ -29,6 +30,7 @@ class PostDetailActivity : AppCompatActivity() {
     private var postBody = ""
 
     companion object {
+        const val LOCAL_POST_ID_BASE = 10000
         private const val KEY_POST_ID = "saved_post_id"
         private const val KEY_COMMENT_NAMES = "saved_comment_names"
         private const val KEY_COMMENT_EMAILS = "saved_comment_emails"
@@ -79,8 +81,7 @@ class PostDetailActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
                 binding.progressBarComments.visibility = View.GONE
                 if (commentList.isEmpty()) {
-                    binding.textViewCommentsMessage.text = "No comments yet"
-                    binding.textViewCommentsMessage.visibility = View.VISIBLE
+                    showEmptyMessage("No comments yet")
                 }
             } else if (postId != -1) {
                 loadComments(postId)
@@ -132,25 +133,22 @@ class PostDetailActivity : AppCompatActivity() {
     }
 
     private fun deletePost() {
-        if (!NetworkUtils.isNetworkAvailable(this)) {
+        // Locally-created posts (id >= LOCAL_POST_ID_BASE) exist only on this
+        // device — remove them locally instead of hitting the fake API.
+        if (currentPostId < LOCAL_POST_ID_BASE &&
+            !NetworkUtils.isNetworkAvailable(this)
+        ) {
             Toast.makeText(this, "No internet connection.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (currentPostId >= LOCAL_POST_ID_BASE) {
+            onPostDeleted()
             return
         }
         binding.progressBarComments.visibility = View.VISIBLE
         lifecycleScope.launch {
             when (val result = repository.deletePost(currentPostId)) {
-                is NetworkResult.Success -> {
-                    val resultIntent = Intent().apply {
-                        putExtra("DELETED_POST_ID", currentPostId)
-                    }
-                    setResult(RESULT_OK, resultIntent)
-                    Toast.makeText(
-                        this@PostDetailActivity,
-                        "Post deleted successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    finish()
-                }
+                is NetworkResult.Success -> onPostDeleted()
                 is NetworkResult.Error -> {
                     binding.progressBarComments.visibility = View.GONE
                     Toast.makeText(
@@ -163,8 +161,18 @@ class PostDetailActivity : AppCompatActivity() {
         }
     }
 
+    private fun onPostDeleted() {
+        val resultIntent = Intent().apply {
+            putExtra("DELETED_POST_ID", currentPostId)
+        }
+        setResult(RESULT_OK, resultIntent)
+        Toast.makeText(this, "Post deleted successfully", Toast.LENGTH_SHORT).show()
+        finish()
+    }
+
     private fun loadComments(postId: Int) {
         binding.progressBarComments.visibility = View.VISIBLE
+        binding.textViewCommentsMessage.visibility = View.GONE
         lifecycleScope.launch {
             when (val result = repository.getComments(postId)) {
                 is NetworkResult.Success -> {
@@ -173,16 +181,28 @@ class PostDetailActivity : AppCompatActivity() {
                     commentList.addAll(result.data)
                     adapter.notifyDataSetChanged()
                     if (commentList.isEmpty()) {
-                        binding.textViewCommentsMessage.text = "No comments yet"
-                        binding.textViewCommentsMessage.visibility = View.VISIBLE
+                        showEmptyMessage("No comments yet")
                     }
                 }
                 is NetworkResult.Error -> {
                     binding.progressBarComments.visibility = View.GONE
+                    binding.textViewCommentsMessage.setTextColor(
+                        ContextCompat.getColor(
+                            this@PostDetailActivity, R.color.error
+                        )
+                    )
                     binding.textViewCommentsMessage.text = result.message
                     binding.textViewCommentsMessage.visibility = View.VISIBLE
                 }
             }
         }
+    }
+
+    private fun showEmptyMessage(message: String) {
+        binding.textViewCommentsMessage.setTextColor(
+            ContextCompat.getColor(this, R.color.text_secondary)
+        )
+        binding.textViewCommentsMessage.text = message
+        binding.textViewCommentsMessage.visibility = View.VISIBLE
     }
 }

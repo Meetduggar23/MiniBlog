@@ -8,18 +8,26 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.miniblog.data.PostRepository
 import com.example.miniblog.databinding.ActivityMainBinding
 import com.example.miniblog.model.Post
+import com.example.miniblog.network.NetworkResult
+import com.example.miniblog.network.NetworkUtils
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val repository = PostRepository()
     private var allPosts = listOf<Post>()
     private lateinit var adapter: PostAdapter
     private var currentSearchQuery = ""
-    private var nextLocalId = 10001
+    private var nextLocalId = PostDetailActivity.LOCAL_POST_ID_BASE + 1
+    private var isLoading = false
 
     private val createPostLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -72,11 +80,8 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerViewPosts.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
-            binding.swipeRefresh.isRefreshing = false
-            if (allPosts.isEmpty()) {
-                showEmptyFeed()
-            } else {
-                Toast.makeText(this, "Feed is up to date", Toast.LENGTH_SHORT).show()
+            if (!isLoading) {
+                loadPosts(fromSwipe = true)
             }
         }
 
@@ -89,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.buttonRetry.setOnClickListener {
-            // Posts are local — retry is a no-op
+            loadPosts()
         }
 
         // Search filtering
@@ -116,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             val savedBodies = savedInstanceState.getStringArrayList("post_bodies")
             val savedIds = savedInstanceState.getIntegerArrayList("post_ids")
             val savedTimestamps = savedInstanceState.getLongArray("post_timestamps")
-            nextLocalId = savedInstanceState.getInt("next_local_id", 10001)
+            nextLocalId = savedInstanceState.getInt("next_local_id", nextLocalId)
             if (savedIds != null && savedTitles != null && savedBodies != null &&
                 savedIds.isNotEmpty()
             ) {
@@ -128,14 +133,13 @@ class MainActivity : AppCompatActivity() {
                         body = savedBodies[i],
                         createdAt = savedTimestamps?.getOrNull(i) ?: System.currentTimeMillis()
                     )
-                }.sortedByDescending { it.createdAt }
+                }
                 filterPosts()
-                binding.progressBar.visibility = View.GONE
             } else {
-                showEmptyFeed()
+                loadPosts()
             }
         } else {
-            showEmptyFeed()
+            loadPosts()
         }
     }
 
@@ -147,11 +151,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                if (allPosts.isEmpty()) {
-                    showEmptyFeed()
-                } else {
-                    Toast.makeText(this, "Feed is up to date", Toast.LENGTH_SHORT).show()
-                }
+                if (!isLoading) loadPosts()
                 true
             }
             R.id.action_overflow -> {
@@ -164,17 +164,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showOverflowMenu() {
         val options = arrayOf("Refresh", "About", "Cancel")
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        AlertDialog.Builder(this)
             .setTitle("Options")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> {
-                        if (allPosts.isEmpty()) {
-                            showEmptyFeed()
-                        } else {
-                            Toast.makeText(this, "Feed is up to date", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    0 -> if (!isLoading) loadPosts()
                     1 -> Toast.makeText(
                         this,
                         "Mini Blog Explorer v1.0\nPowered by jsonplaceholder.typicode.com",
@@ -192,6 +186,51 @@ class MainActivity : AppCompatActivity() {
         outState.putIntegerArrayList("post_ids", ArrayList(allPosts.map { it.id }))
         outState.putLongArray("post_timestamps", allPosts.map { it.createdAt }.toLongArray())
         outState.putInt("next_local_id", nextLocalId)
+    }
+
+    private fun localPosts() = allPosts.filter { it.id >= PostDetailActivity.LOCAL_POST_ID_BASE }
+
+    private fun loadPosts(fromSwipe: Boolean = false) {
+        if (isLoading) return
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            binding.swipeRefresh.isRefreshing = false
+            if (allPosts.isEmpty()) {
+                showEmptyFeed()
+            } else {
+                Toast.makeText(this, "Offline — showing saved posts", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+        isLoading = true
+        if (fromSwipe) {
+            binding.swipeRefresh.isRefreshing = true
+        } else if (allPosts.isEmpty()) {
+            binding.progressBar.visibility = View.VISIBLE
+            hideEmpty()
+        }
+        lifecycleScope.launch {
+            val result = repository.getPosts()
+            isLoading = false
+            binding.swipeRefresh.isRefreshing = false
+            binding.progressBar.visibility = View.GONE
+            when (result) {
+                is NetworkResult.Success -> {
+                    // Keep locally-created posts pinned at the top of the feed.
+                    allPosts = localPosts() + result.data
+                    filterPosts()
+                }
+                is NetworkResult.Error -> {
+                    if (allPosts.isEmpty()) {
+                        showEmptyFeed()
+                    }
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Couldn't load posts: ${result.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     private fun filterPosts() {

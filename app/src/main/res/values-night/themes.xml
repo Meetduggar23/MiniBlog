@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <style name="Base.Theme.Miniblog" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
@@ -12,8 +12,4 @@
         <item name="android:windowBackground">@color/background</item>
     </style>
 
-    <style name="Theme.Miniblog.Toolbar" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="android:background">@color/primary</item>
-        <item name="colorOnSurface">@color/toolbar_icon</item>
-    </style>
 </resources>

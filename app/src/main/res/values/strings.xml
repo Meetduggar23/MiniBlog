@@ -3,4 +3,14 @@
     <string name="empty_feed_title">No posts yet</string>
     <string name="empty_feed_subtitle">Your blog is empty. Create your first post and it will appear here automatically.</string>
     <string name="create_first_post">+ Create Post</string>
+    <string name="search_hint">Search posts…</string>
+    <string name="retry">Retry</string>
+    <string name="refresh">Refresh</string>
+    <string name="more">More</string>
+    <string name="delete">Delete</string>
+    <string name="comments">Comments</string>
+    <string name="create_post">Create Post</string>
+    <string name="hint_title">Title</string>
+    <string name="hint_body">What\'s on your mind?</string>
+    <string name="publish_post">Publish Post</string>
 </resources>

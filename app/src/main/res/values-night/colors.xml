@@ -16,7 +16,6 @@
     <color name="error_bg">#FF3E1A1A</color>
     <color name="error_text">#FFEF9A9A</color>
     <color name="search_bg">#FF2C2C2C</color>
-    <color name="search_stroke">#FF555555</color>
     <color name="search_hint">#FFBBBBBB</color>
     <color name="toolbar_icon">#FFEEEEEE</color>
     <color name="on_primary">#FFEEEEEE</color>

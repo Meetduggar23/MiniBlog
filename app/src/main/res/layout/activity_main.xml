@@ -29,9 +29,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="-4dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="12dp"
-            android:hint="Search posts..."
+            android:hint="@string/search_hint"
             app:boxBackgroundMode="outline"
             app:boxCornerRadiusTopStart="28dp"
             app:boxCornerRadiusTopEnd="28dp"
@@ -42,6 +42,8 @@
             app:hintTextColor="@color/search_hint"
             app:startIconDrawable="@drawable/ic_search"
             app:startIconTint="@color/search_hint"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/search_hint"
             app:elevation="4dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -151,7 +153,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Retry"
+                    android:text="@string/retry"
                     android:textAllCaps="false"
                     android:textColor="@color/on_primary"
                     android:visibility="gone"
@@ -172,7 +174,7 @@
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
         android:src="@android:drawable/ic_input_add"
-        android:contentDescription="Create Post"
+        android:contentDescription="@string/create_post"
         app:backgroundTint="@color/primary"
         app:tint="@color/on_primary"
         app:fabSize="normal"
