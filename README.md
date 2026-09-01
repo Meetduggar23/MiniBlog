@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="appicon.png" alt="Mini Blog Explorer" width="200">
+  <img src="appicon.png" alt="Mini Blog Explorer" width="100">
 </div>
 
-# Mini Blog Explorer
+<div align="center"> # Mini Blog Explorer </div>
 
 A clean, modern Android blog reader app built with Kotlin, Material Design 3, and coroutines.
 
