@@ -33,6 +33,29 @@ object NetworkClient {
         }
     }
 
+    fun delete(endpoint: String): NetworkResult<String> {
+        var connection: HttpURLConnection? = null
+        return try {
+            val url = URL(BASE_URL + endpoint)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "DELETE"
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.connect()
+
+            val code = connection.responseCode
+            if (code in 200..299) {
+                NetworkResult.Success(readStream(connection.inputStream))
+            } else {
+                NetworkResult.Error("Server returned HTTP $code")
+            }
+        } catch (e: Exception) {
+            NetworkResult.Error("Network error: ${e.message}")
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
     fun post(endpoint: String, jsonBody: String): NetworkResult<String> {
         var connection: HttpURLConnection? = null
         return try {

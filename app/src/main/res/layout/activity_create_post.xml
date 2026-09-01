@@ -17,8 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/primary"
-            app:titleTextColor="@android:color/white"
-            app:navigationIconTint="@android:color/white" />
+            app:titleTextColor="@color/toolbar_icon"
+            app:navigationIconTint="@color/toolbar_icon" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -45,6 +45,7 @@
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/accent"
                 app:helperText="Required"
                 app:helperTextEnabled="false">
 
@@ -53,6 +54,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -69,6 +72,7 @@
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/accent"
                 app:helperText="Required"
                 app:helperTextEnabled="false">
 
@@ -78,6 +82,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="top"
                     android:minLines="5"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
                     android:inputType="textMultiLine" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -89,6 +95,7 @@
                 android:layout_marginTop="20dp"
                 android:text="Publish Post"
                 android:textAllCaps="false"
+                android:textColor="@color/on_primary"
                 app:backgroundTint="@color/primary"
                 app:cornerRadius="8dp"
                 app:elevation="4dp" />
@@ -101,7 +108,6 @@
                 android:layout_marginTop="16dp"
                 android:visibility="gone" />
 
-            <!-- Success card (green) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSuccess"
                 android:layout_width="match_parent"
@@ -122,7 +128,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Error card (red) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardError"
                 android:layout_width="match_parent"

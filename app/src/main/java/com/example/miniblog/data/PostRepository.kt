@@ -40,6 +40,11 @@ class PostRepository {
             }
         }
 
+    suspend fun deletePost(postId: Int): NetworkResult<String> =
+        withContext(Dispatchers.IO) {
+            NetworkClient.delete("/posts/$postId")
+        }
+
     suspend fun createPost(title: String, body: String): NetworkResult<String> =
         withContext(Dispatchers.IO) {
             val json = JsonParser.buildPostJson(title, body, 1)
