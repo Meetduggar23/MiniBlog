@@ -1,5 +1,6 @@
 package com.example.miniblog
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -61,16 +62,20 @@ class CreatePostActivity : AppCompatActivity() {
                 is NetworkResult.Success -> {
                     binding.progressBarCreate.visibility = View.GONE
                     binding.buttonSubmit.isEnabled = true
-                    binding.textViewSuccess.text =
-                        "Post created successfully!\n\nServer response:\n${result.data}"
-                    binding.cardSuccess.visibility = View.VISIBLE
-                    binding.editTextTitle.text?.clear()
-                    binding.editTextBody.text?.clear()
+
+                    val resultIntent = Intent().apply {
+                        putExtra("POST_TITLE", title)
+                        putExtra("POST_BODY", body)
+                    }
+                    setResult(RESULT_OK, resultIntent)
+
                     Toast.makeText(
                         this@CreatePostActivity,
                         "Post published!",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    finish()
                 }
                 is NetworkResult.Error -> {
                     binding.progressBarCreate.visibility = View.GONE

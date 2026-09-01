@@ -7,23 +7,39 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.miniblog.data.PostRepository
 import com.example.miniblog.databinding.ActivityMainBinding
 import com.example.miniblog.model.Post
-import com.example.miniblog.network.NetworkResult
-import com.example.miniblog.network.NetworkUtils
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val repository = PostRepository()
     private var allPosts = listOf<Post>()
     private lateinit var adapter: PostAdapter
     private var currentSearchQuery = ""
+    private var nextLocalId = 10001
+
+    private val createPostLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val title = result.data?.getStringExtra("POST_TITLE") ?: ""
+            val body = result.data?.getStringExtra("POST_BODY") ?: ""
+            if (title.isNotEmpty() && body.isNotEmpty()) {
+                val newPost = Post(
+                    userId = 1,
+                    id = nextLocalId++,
+                    title = title,
+                    body = body,
+                    createdAt = System.currentTimeMillis()
+                )
+                allPosts = listOf(newPost) + allPosts
+                filterPosts()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,15 +60,19 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerViewPosts.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
-            loadPosts()
+            binding.swipeRefresh.isRefreshing = false
         }
 
         binding.fabCreate.setOnClickListener {
-            startActivity(Intent(this, CreatePostActivity::class.java))
+            createPostLauncher.launch(Intent(this, CreatePostActivity::class.java))
+        }
+
+        binding.buttonCreatePost.setOnClickListener {
+            createPostLauncher.launch(Intent(this, CreatePostActivity::class.java))
         }
 
         binding.buttonRetry.setOnClickListener {
-            loadPosts()
+            // Posts are local — retry is a no-op
         }
 
         // Search filtering
@@ -78,19 +98,27 @@ class MainActivity : AppCompatActivity() {
             val savedTitles = savedInstanceState.getStringArrayList("post_titles")
             val savedBodies = savedInstanceState.getStringArrayList("post_bodies")
             val savedIds = savedInstanceState.getIntegerArrayList("post_ids")
+            val savedTimestamps = savedInstanceState.getLongArray("post_timestamps")
+            nextLocalId = savedInstanceState.getInt("next_local_id", 10001)
             if (savedIds != null && savedTitles != null && savedBodies != null &&
-                savedIds.isNotEmpty()) {
+                savedIds.isNotEmpty()
+            ) {
                 allPosts = savedIds.indices.map { i ->
-                    Post(userId = 1, id = savedIds[i], title = savedTitles[i], body = savedBodies[i])
-                }
+                    Post(
+                        userId = 1,
+                        id = savedIds[i],
+                        title = savedTitles[i],
+                        body = savedBodies[i],
+                        createdAt = savedTimestamps?.getOrNull(i) ?: System.currentTimeMillis()
+                    )
+                }.sortedByDescending { it.createdAt }
                 filterPosts()
                 binding.progressBar.visibility = View.GONE
-                if (allPosts.isEmpty()) showEmpty("No posts found.")
             } else {
-                loadPosts()
+                showEmptyFeed()
             }
         } else {
-            loadPosts()
+            showEmptyFeed()
         }
     }
 
@@ -102,7 +130,8 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                loadPosts()
+                binding.swipeRefresh.isRefreshing = true
+                binding.swipeRefresh.isRefreshing = false
                 true
             }
             R.id.action_overflow -> {
@@ -119,7 +148,10 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Options")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> loadPosts()
+                    0 -> {
+                        binding.swipeRefresh.isRefreshing = true
+                        binding.swipeRefresh.isRefreshing = false
+                    }
                     1 -> Toast.makeText(
                         this,
                         "Mini Blog Explorer v1.0\nPowered by jsonplaceholder.typicode.com",
@@ -135,6 +167,8 @@ class MainActivity : AppCompatActivity() {
         outState.putStringArrayList("post_titles", ArrayList(allPosts.map { it.title }))
         outState.putStringArrayList("post_bodies", ArrayList(allPosts.map { it.body }))
         outState.putIntegerArrayList("post_ids", ArrayList(allPosts.map { it.id }))
+        outState.putLongArray("post_timestamps", allPosts.map { it.createdAt }.toLongArray())
+        outState.putInt("next_local_id", nextLocalId)
     }
 
     private fun filterPosts() {
@@ -148,61 +182,42 @@ class MainActivity : AppCompatActivity() {
         }
         adapter.submitList(filtered)
 
-        if (filtered.isEmpty() && allPosts.isNotEmpty()) {
-            showEmpty("No posts match \"$currentSearchQuery\"")
-        } else if (filtered.isEmpty()) {
-            // keep empty state
+        if (allPosts.isEmpty() && currentSearchQuery.isEmpty()) {
+            showEmptyFeed()
+        } else if (filtered.isEmpty() && allPosts.isNotEmpty()) {
+            showSearchEmpty()
         } else {
             hideEmpty()
         }
     }
 
-    private fun loadPosts() {
-        if (!NetworkUtils.isNetworkAvailable(this)) {
-            showEmpty("No internet connection.")
-            binding.buttonRetry.visibility = View.VISIBLE
-            binding.swipeRefresh.isRefreshing = false
-            return
-        }
-        showLoading(true)
-        lifecycleScope.launch {
-            when (val result = repository.getPosts()) {
-                is NetworkResult.Success -> {
-                    showLoading(false)
-                    binding.swipeRefresh.isRefreshing = false
-                    allPosts = result.data
-                    filterPosts()
-                    if (allPosts.isEmpty()) showEmpty("No posts found.")
-                    else hideEmpty()
-                }
-                is NetworkResult.Error -> {
-                    showLoading(false)
-                    binding.swipeRefresh.isRefreshing = false
-                    showEmpty(result.message)
-                    binding.buttonRetry.visibility = View.VISIBLE
-                }
-            }
-        }
-    }
-
-    private fun showLoading(isLoading: Boolean) {
-        binding.progressBar.visibility =
-            if (isLoading) View.VISIBLE else View.GONE
-        binding.layoutEmpty.visibility = View.GONE
-        binding.recyclerViewPosts.visibility =
-            if (isLoading) View.GONE else View.VISIBLE
-    }
-
-    private fun showEmpty(message: String) {
+    private fun showEmptyFeed() {
         binding.layoutEmpty.visibility = View.VISIBLE
-        binding.textViewMessage.text = message
+        binding.imageViewEmptyLogo.visibility = View.VISIBLE
+        binding.textViewEmptyTitle.visibility = View.VISIBLE
+        binding.textViewEmptySubtitle.visibility = View.VISIBLE
+        binding.buttonCreatePost.visibility = View.VISIBLE
+        binding.textViewMessage.visibility = View.GONE
+        binding.buttonRetry.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerViewPosts.visibility = View.GONE
+    }
+
+    private fun showSearchEmpty() {
+        binding.layoutEmpty.visibility = View.VISIBLE
+        binding.imageViewEmptyLogo.visibility = View.GONE
+        binding.textViewEmptyTitle.visibility = View.GONE
+        binding.textViewEmptySubtitle.visibility = View.GONE
+        binding.buttonCreatePost.visibility = View.GONE
+        binding.textViewMessage.visibility = View.VISIBLE
+        binding.textViewMessage.text = "No posts match \"$currentSearchQuery\""
+        binding.buttonRetry.visibility = View.GONE
         binding.progressBar.visibility = View.GONE
         binding.recyclerViewPosts.visibility = View.GONE
     }
 
     private fun hideEmpty() {
         binding.layoutEmpty.visibility = View.GONE
-        binding.buttonRetry.visibility = View.GONE
         binding.recyclerViewPosts.visibility = View.VISIBLE
     }
 }
