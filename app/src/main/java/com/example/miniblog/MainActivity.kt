@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = "Mini Blog Explorer"
+        supportActionBar?.title = "MiniBlog"
 
         adapter = PostAdapter { post ->
             val intent = Intent(this, PostDetailActivity::class.java)
@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                     0 -> loadPosts()
                     1 -> Toast.makeText(
                         this,
-                        "Mini Blog Explorer v1.0\nYour posts are saved on this device.",
+                        "MiniBlog v1.0\nYour posts are saved on this device.",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -186,6 +186,8 @@ class MainActivity : AppCompatActivity() {
     private fun showEmptyFeed() {
         binding.layoutEmpty.visibility = View.VISIBLE
         binding.imageViewEmptyLogo.visibility = View.VISIBLE
+        binding.textViewBrandName.visibility = View.VISIBLE
+        binding.textViewTagline.visibility = View.VISIBLE
         binding.textViewEmptyTitle.visibility = View.VISIBLE
         binding.textViewEmptySubtitle.visibility = View.VISIBLE
         binding.buttonCreatePost.visibility = View.VISIBLE
@@ -196,6 +198,8 @@ class MainActivity : AppCompatActivity() {
     private fun showSearchEmpty() {
         binding.layoutEmpty.visibility = View.VISIBLE
         binding.imageViewEmptyLogo.visibility = View.GONE
+        binding.textViewBrandName.visibility = View.GONE
+        binding.textViewTagline.visibility = View.GONE
         binding.textViewEmptyTitle.visibility = View.GONE
         binding.textViewEmptySubtitle.visibility = View.GONE
         binding.buttonCreatePost.visibility = View.GONE
