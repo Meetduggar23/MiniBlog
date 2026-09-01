@@ -41,6 +41,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val detailLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val deletedId = result.data?.getIntExtra("DELETED_POST_ID", -1) ?: -1
+            if (deletedId != -1) {
+                allPosts = allPosts.filter { it.id != deletedId }
+                filterPosts()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -54,13 +66,18 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("POST_ID", post.id)
             intent.putExtra("POST_TITLE", post.title)
             intent.putExtra("POST_BODY", post.body)
-            startActivity(intent)
+            detailLauncher.launch(intent)
         }
         binding.recyclerViewPosts.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewPosts.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
             binding.swipeRefresh.isRefreshing = false
+            if (allPosts.isEmpty()) {
+                showEmptyFeed()
+            } else {
+                Toast.makeText(this, "Feed is up to date", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.fabCreate.setOnClickListener {
@@ -130,8 +147,11 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                binding.swipeRefresh.isRefreshing = true
-                binding.swipeRefresh.isRefreshing = false
+                if (allPosts.isEmpty()) {
+                    showEmptyFeed()
+                } else {
+                    Toast.makeText(this, "Feed is up to date", Toast.LENGTH_SHORT).show()
+                }
                 true
             }
             R.id.action_overflow -> {
@@ -149,8 +169,11 @@ class MainActivity : AppCompatActivity() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> {
-                        binding.swipeRefresh.isRefreshing = true
-                        binding.swipeRefresh.isRefreshing = false
+                        if (allPosts.isEmpty()) {
+                            showEmptyFeed()
+                        } else {
+                            Toast.makeText(this, "Feed is up to date", Toast.LENGTH_SHORT).show()
+                        }
                     }
                     1 -> Toast.makeText(
                         this,

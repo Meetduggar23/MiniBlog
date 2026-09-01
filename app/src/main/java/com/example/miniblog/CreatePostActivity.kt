@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.miniblog.data.PostRepository
 import com.example.miniblog.databinding.ActivityCreatePostBinding
 import com.example.miniblog.network.NetworkResult
+import com.example.miniblog.network.NetworkUtils
 import kotlinx.coroutines.launch
 
 class CreatePostActivity : AppCompatActivity() {
@@ -53,6 +54,12 @@ class CreatePostActivity : AppCompatActivity() {
             hasError = true
         }
         if (hasError) return
+
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            binding.textViewError.text = "No internet connection. Please try again."
+            binding.cardError.visibility = View.VISIBLE
+            return
+        }
 
         binding.progressBarCreate.visibility = View.VISIBLE
         binding.buttonSubmit.isEnabled = false

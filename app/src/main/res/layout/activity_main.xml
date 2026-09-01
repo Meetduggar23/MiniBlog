@@ -20,7 +20,6 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/primary"
             app:titleTextColor="@color/toolbar_icon"
-            app:menu="@menu/menu_main"
             app:navigationIconTint="@color/toolbar_icon"
             app:popupTheme="@style/ThemeOverlay.Material3.Light" />
 

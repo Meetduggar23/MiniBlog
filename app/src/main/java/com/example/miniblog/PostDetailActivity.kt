@@ -1,5 +1,6 @@
 package com.example.miniblog
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -139,12 +140,15 @@ class PostDetailActivity : AppCompatActivity() {
         lifecycleScope.launch {
             when (val result = repository.deletePost(currentPostId)) {
                 is NetworkResult.Success -> {
+                    val resultIntent = Intent().apply {
+                        putExtra("DELETED_POST_ID", currentPostId)
+                    }
+                    setResult(RESULT_OK, resultIntent)
                     Toast.makeText(
                         this@PostDetailActivity,
                         "Post deleted successfully",
                         Toast.LENGTH_SHORT
                     ).show()
-                    setResult(RESULT_OK)
                     finish()
                 }
                 is NetworkResult.Error -> {

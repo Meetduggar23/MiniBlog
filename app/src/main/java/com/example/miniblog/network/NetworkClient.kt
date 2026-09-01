@@ -1,8 +1,6 @@
 package com.example.miniblog.network
 
-import java.io.BufferedReader
 import java.io.InputStream
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -88,13 +86,8 @@ object NetworkClient {
     }
 
     private fun readStream(input: InputStream): String {
-        val reader = BufferedReader(InputStreamReader(input))
-        val builder = StringBuilder()
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            builder.appendLine(line)
+        return input.bufferedReader().use { reader ->
+            reader.readText().trim()
         }
-        reader.close()
-        return builder.toString().trim()
     }
 }
