@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Color palette from reference -->
-    <color name="primary">#FF1976D2</color>
-    <color name="primary_dark">#FF1565C0</color>
-    <color name="primary_light">#FF42A5F5</color>
-    <color name="accent">#FF26A69A</color>
-    <color name="background">#FFF5F5F5</color>
+    <!-- Color palette: Cream, beige, maroon -->
+    <color name="primary">#FF541A1A</color>
+    <color name="primary_dark">#FF3A1010</color>
+    <color name="primary_light">#FF7A3B3B</color>
+    <color name="accent">#FFDCC3AA</color>
+    <color name="background">#FFF1E2D1</color>
     <color name="card_background">#FFFFFFFF</color>
     <color name="text_primary">#FF222222</color>
     <color name="text_secondary">#FF707070</color>
@@ -16,8 +16,8 @@
     <color name="error_bg">#FFFCE4EC</color>
     <color name="error_text">#FFC62828</color>
     <color name="search_bg">#FFFFFFFF</color>
-    <color name="search_stroke">#FFE0E0E0</color>
-    <color name="toolbar_icon">#FFFFFFFF</color>
-    <color name="on_primary">#FFFFFFFF</color>
-    <color name="card_border">#FFE0E0E0</color>
+    <color name="search_stroke">#FFDCC3AA</color>
+    <color name="toolbar_icon">#FFF1E2D1</color>
+    <color name="on_primary">#FFF1E2D1</color>
+    <color name="card_border">#FFDCC3AA</color>
 </resources>
