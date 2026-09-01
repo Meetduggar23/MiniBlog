@@ -9,19 +9,6 @@ import kotlinx.coroutines.withContext
 
 class PostRepository {
 
-    suspend fun getPosts(): NetworkResult<List<Post>> =
-        withContext(Dispatchers.IO) {
-            when (val result = NetworkClient.get("/posts")) {
-                is NetworkResult.Success ->
-                    try {
-                        NetworkResult.Success(JsonParser.parsePosts(result.data))
-                    } catch (e: Exception) {
-                        NetworkResult.Error("Could not read posts: ${e.message}")
-                    }
-                is NetworkResult.Error -> result
-            }
-        }
-
     suspend fun getComments(postId: Int): NetworkResult<List<Comment>> =
         withContext(Dispatchers.IO) {
             when (val result =
@@ -45,9 +32,26 @@ class PostRepository {
             NetworkClient.delete("/posts/$postId")
         }
 
-    suspend fun createPost(title: String, body: String): NetworkResult<String> =
+    /**
+     * Publishes a post and returns the created post built from the backend
+     * response (including the backend-assigned id when one is returned).
+     * The caller assigns the device-local id before showing it in the feed.
+     */
+    suspend fun createPost(title: String, body: String): NetworkResult<Post> =
         withContext(Dispatchers.IO) {
             val json = JsonParser.buildPostJson(title, body, 1)
-            NetworkClient.post("/posts", json)
+            when (val result = NetworkClient.post("/posts", json)) {
+                is NetworkResult.Success ->
+                    NetworkResult.Success(
+                        Post(
+                            userId = 1,
+                            id = 0,
+                            title = title,
+                            body = body,
+                            remoteId = JsonParser.parseCreatedPostId(result.data)
+                        )
+                    )
+                is NetworkResult.Error -> result
+            }
         }
 }

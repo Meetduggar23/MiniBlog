@@ -6,6 +6,8 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.miniblog.data.JsonParser
+import com.example.miniblog.data.LocalPostStore
 import com.example.miniblog.data.PostRepository
 import com.example.miniblog.databinding.ActivityCreatePostBinding
 import com.example.miniblog.network.NetworkResult
@@ -16,6 +18,7 @@ class CreatePostActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreatePostBinding
     private val repository = PostRepository()
+    private val postStore by lazy { LocalPostStore(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +66,7 @@ class CreatePostActivity : AppCompatActivity() {
 
         binding.progressBarCreate.visibility = View.VISIBLE
         binding.buttonSubmit.isEnabled = false
+        val submittedAt = System.currentTimeMillis()
 
         lifecycleScope.launch {
             when (val result = repository.createPost(title, body)) {
@@ -70,9 +74,14 @@ class CreatePostActivity : AppCompatActivity() {
                     binding.progressBarCreate.visibility = View.GONE
                     binding.buttonSubmit.isEnabled = true
 
+                    // The backend confirmed the publish; give the post its
+                    // device-local identity and actual creation timestamp.
+                    val created = result.data.copy(
+                        id = postStore.nextLocalId(),
+                        createdAt = submittedAt
+                    )
                     val resultIntent = Intent().apply {
-                        putExtra("POST_TITLE", title)
-                        putExtra("POST_BODY", body)
+                        putExtra(EXTRA_CREATED_POST, JsonParser.postToJson(created))
                     }
                     setResult(RESULT_OK, resultIntent)
 
@@ -92,5 +101,9 @@ class CreatePostActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    companion object {
+        const val EXTRA_CREATED_POST = "created_post"
     }
 }

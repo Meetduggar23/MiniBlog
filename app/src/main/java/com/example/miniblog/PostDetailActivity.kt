@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.miniblog.data.PostRepository
 import com.example.miniblog.databinding.ActivityPostDetailBinding
 import com.example.miniblog.model.Comment
+import com.example.miniblog.model.Post
 import com.example.miniblog.network.NetworkResult
 import com.example.miniblog.network.NetworkUtils
 import kotlinx.coroutines.launch
@@ -30,7 +31,6 @@ class PostDetailActivity : AppCompatActivity() {
     private var postBody = ""
 
     companion object {
-        const val LOCAL_POST_ID_BASE = 10000
         private const val KEY_POST_ID = "saved_post_id"
         private const val KEY_COMMENT_NAMES = "saved_comment_names"
         private const val KEY_COMMENT_EMAILS = "saved_comment_emails"
@@ -133,15 +133,15 @@ class PostDetailActivity : AppCompatActivity() {
     }
 
     private fun deletePost() {
-        // Locally-created posts (id >= LOCAL_POST_ID_BASE) exist only on this
-        // device — remove them locally instead of hitting the fake API.
-        if (currentPostId < LOCAL_POST_ID_BASE &&
+        // Locally-created posts (id >= Post.LOCAL_ID_BASE) exist only on this
+        // device — remove them locally instead of hitting the remote service.
+        if (currentPostId < Post.LOCAL_ID_BASE &&
             !NetworkUtils.isNetworkAvailable(this)
         ) {
             Toast.makeText(this, "No internet connection.", Toast.LENGTH_SHORT).show()
             return
         }
-        if (currentPostId >= LOCAL_POST_ID_BASE) {
+        if (currentPostId >= Post.LOCAL_ID_BASE) {
             onPostDeleted()
             return
         }
@@ -171,6 +171,12 @@ class PostDetailActivity : AppCompatActivity() {
     }
 
     private fun loadComments(postId: Int) {
+        // User-created posts live only on this device — there are no remote
+        // comments to fetch for them.
+        if (postId >= Post.LOCAL_ID_BASE) {
+            showEmptyMessage("No comments yet")
+            return
+        }
         binding.progressBarComments.visibility = View.VISIBLE
         binding.textViewCommentsMessage.visibility = View.GONE
         lifecycleScope.launch {

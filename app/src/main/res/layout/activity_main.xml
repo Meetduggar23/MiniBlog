@@ -19,6 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/primary"
+            app:logo="@drawable/logo_toolbar"
             app:titleTextColor="@color/toolbar_icon"
             app:navigationIconTint="@color/toolbar_icon"
             app:popupTheme="@style/ThemeOverlay.Material3.Light" />
@@ -98,11 +99,14 @@
                 android:visibility="gone"
                 android:padding="32dp">
 
+                <!-- Brand mark: small, no circle/background, original aspect ratio -->
                 <ImageView
                     android:id="@+id/imageViewEmptyLogo"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:src="@drawable/ic_launcher_foreground"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="8dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_logo"
                     android:contentDescription="@string/app_name"
                     android:visibility="gone" />
 
@@ -110,7 +114,7 @@
                     android:id="@+id/textViewEmptyTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:text="@string/empty_feed_title"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -140,25 +144,13 @@
                     android:id="@+id/buttonCreatePost"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="24dp"
                     android:text="@string/create_first_post"
                     android:textAllCaps="false"
                     android:textColor="@color/on_primary"
                     app:backgroundTint="@color/primary"
                     app:cornerRadius="8dp"
                     android:visibility="gone" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonRetry"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/retry"
-                    android:textAllCaps="false"
-                    android:textColor="@color/on_primary"
-                    android:visibility="gone"
-                    app:backgroundTint="@color/primary"
-                    app:cornerRadius="8dp" />
 
             </LinearLayout>
 

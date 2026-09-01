@@ -10,42 +10,27 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.miniblog.data.PostRepository
+import com.example.miniblog.data.JsonParser
+import com.example.miniblog.data.LocalPostStore
 import com.example.miniblog.databinding.ActivityMainBinding
 import com.example.miniblog.model.Post
-import com.example.miniblog.network.NetworkResult
-import com.example.miniblog.network.NetworkUtils
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val repository = PostRepository()
+    private val postStore by lazy { LocalPostStore(this) }
     private var allPosts = listOf<Post>()
     private lateinit var adapter: PostAdapter
     private var currentSearchQuery = ""
-    private var nextLocalId = PostDetailActivity.LOCAL_POST_ID_BASE + 1
-    private var isLoading = false
 
     private val createPostLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val title = result.data?.getStringExtra("POST_TITLE") ?: ""
-            val body = result.data?.getStringExtra("POST_BODY") ?: ""
-            if (title.isNotEmpty() && body.isNotEmpty()) {
-                val newPost = Post(
-                    userId = 1,
-                    id = nextLocalId++,
-                    title = title,
-                    body = body,
-                    createdAt = System.currentTimeMillis()
-                )
-                allPosts = listOf(newPost) + allPosts
-                filterPosts()
-            }
+            handleCreatedPost(
+                result.data?.getStringExtra(CreatePostActivity.EXTRA_CREATED_POST)
+            )
         }
     }
 
@@ -55,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val deletedId = result.data?.getIntExtra("DELETED_POST_ID", -1) ?: -1
             if (deletedId != -1) {
+                postStore.removePost(deletedId)
                 allPosts = allPosts.filter { it.id != deletedId }
                 filterPosts()
             }
@@ -80,9 +66,8 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerViewPosts.adapter = adapter
 
         binding.swipeRefresh.setOnRefreshListener {
-            if (!isLoading) {
-                loadPosts(fromSwipe = true)
-            }
+            loadPosts()
+            binding.swipeRefresh.isRefreshing = false
         }
 
         binding.fabCreate.setOnClickListener {
@@ -91,10 +76,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.buttonCreatePost.setOnClickListener {
             createPostLauncher.launch(Intent(this, CreatePostActivity::class.java))
-        }
-
-        binding.buttonRetry.setOnClickListener {
-            loadPosts()
         }
 
         // Search filtering
@@ -116,30 +97,27 @@ class MainActivity : AppCompatActivity() {
             } else false
         }
 
-        if (savedInstanceState != null) {
-            val savedTitles = savedInstanceState.getStringArrayList("post_titles")
-            val savedBodies = savedInstanceState.getStringArrayList("post_bodies")
-            val savedIds = savedInstanceState.getIntegerArrayList("post_ids")
-            val savedTimestamps = savedInstanceState.getLongArray("post_timestamps")
-            nextLocalId = savedInstanceState.getInt("next_local_id", nextLocalId)
-            if (savedIds != null && savedTitles != null && savedBodies != null &&
-                savedIds.isNotEmpty()
-            ) {
-                allPosts = savedIds.indices.map { i ->
-                    Post(
-                        userId = 1,
-                        id = savedIds[i],
-                        title = savedTitles[i],
-                        body = savedBodies[i],
-                        createdAt = savedTimestamps?.getOrNull(i) ?: System.currentTimeMillis()
-                    )
-                }
-                filterPosts()
-            } else {
-                loadPosts()
-            }
-        } else {
-            loadPosts()
+        loadPosts()
+    }
+
+    /**
+     * Inserts a successfully published post at the TOP of the feed and
+     * persists it, so it stays first across search, refresh and restarts.
+     */
+    private fun handleCreatedPost(postJson: String?) {
+        if (postJson == null) return
+        val newPost = try {
+            JsonParser.parsePost(postJson)
+        } catch (e: Exception) {
+            null
+        } ?: return
+
+        postStore.addPost(newPost)
+        // Newest first: the freshly created post carries the latest timestamp.
+        allPosts = (listOf(newPost) + allPosts).sortedByDescending { it.createdAt }
+        filterPosts()
+        binding.recyclerViewPosts.post {
+            binding.recyclerViewPosts.scrollToPosition(0)
         }
     }
 
@@ -151,7 +129,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                if (!isLoading) loadPosts()
+                loadPosts()
                 true
             }
             R.id.action_overflow -> {
@@ -168,10 +146,10 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Options")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> if (!isLoading) loadPosts()
+                    0 -> loadPosts()
                     1 -> Toast.makeText(
                         this,
-                        "Mini Blog Explorer v1.0\nPowered by jsonplaceholder.typicode.com",
+                        "Mini Blog Explorer v1.0\nYour posts are saved on this device.",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -179,58 +157,10 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putStringArrayList("post_titles", ArrayList(allPosts.map { it.title }))
-        outState.putStringArrayList("post_bodies", ArrayList(allPosts.map { it.body }))
-        outState.putIntegerArrayList("post_ids", ArrayList(allPosts.map { it.id }))
-        outState.putLongArray("post_timestamps", allPosts.map { it.createdAt }.toLongArray())
-        outState.putInt("next_local_id", nextLocalId)
-    }
-
-    private fun localPosts() = allPosts.filter { it.id >= PostDetailActivity.LOCAL_POST_ID_BASE }
-
-    private fun loadPosts(fromSwipe: Boolean = false) {
-        if (isLoading) return
-        if (!NetworkUtils.isNetworkAvailable(this)) {
-            binding.swipeRefresh.isRefreshing = false
-            if (allPosts.isEmpty()) {
-                showEmptyFeed()
-            } else {
-                Toast.makeText(this, "Offline — showing saved posts", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
-        isLoading = true
-        if (fromSwipe) {
-            binding.swipeRefresh.isRefreshing = true
-        } else if (allPosts.isEmpty()) {
-            binding.progressBar.visibility = View.VISIBLE
-            hideEmpty()
-        }
-        lifecycleScope.launch {
-            val result = repository.getPosts()
-            isLoading = false
-            binding.swipeRefresh.isRefreshing = false
-            binding.progressBar.visibility = View.GONE
-            when (result) {
-                is NetworkResult.Success -> {
-                    // Keep locally-created posts pinned at the top of the feed.
-                    allPosts = localPosts() + result.data
-                    filterPosts()
-                }
-                is NetworkResult.Error -> {
-                    if (allPosts.isEmpty()) {
-                        showEmptyFeed()
-                    }
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Couldn't load posts: ${result.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
+    /** Loads only user-created posts, newest first. */
+    private fun loadPosts() {
+        allPosts = postStore.getPosts()
+        filterPosts()
     }
 
     private fun filterPosts() {
@@ -260,8 +190,6 @@ class MainActivity : AppCompatActivity() {
         binding.textViewEmptySubtitle.visibility = View.VISIBLE
         binding.buttonCreatePost.visibility = View.VISIBLE
         binding.textViewMessage.visibility = View.GONE
-        binding.buttonRetry.visibility = View.GONE
-        binding.progressBar.visibility = View.GONE
         binding.recyclerViewPosts.visibility = View.GONE
     }
 
@@ -273,8 +201,6 @@ class MainActivity : AppCompatActivity() {
         binding.buttonCreatePost.visibility = View.GONE
         binding.textViewMessage.visibility = View.VISIBLE
         binding.textViewMessage.text = "No posts match \"$currentSearchQuery\""
-        binding.buttonRetry.visibility = View.GONE
-        binding.progressBar.visibility = View.GONE
         binding.recyclerViewPosts.visibility = View.GONE
     }
 
