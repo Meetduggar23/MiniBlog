@@ -21,6 +21,7 @@
             android:background="@color/primary"
             app:titleTextColor="@color/toolbar_icon"
             app:menu="@menu/menu_main"
+            app:navigationIconTint="@color/toolbar_icon"
             app:popupTheme="@style/ThemeOverlay.Material3.Light" />
 
         <!-- Search bar overlapping content -->
@@ -39,9 +40,9 @@
             app:boxCornerRadiusBottomEnd="28dp"
             app:boxStrokeWidth="0dp"
             app:boxBackgroundColor="@color/search_bg"
-            app:hintTextColor="@color/text_secondary"
+            app:hintTextColor="@color/search_hint"
             app:startIconDrawable="@drawable/ic_search"
-            app:startIconTint="@color/text_secondary"
+            app:startIconTint="@color/search_hint"
             app:elevation="4dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -51,9 +52,10 @@
                 android:inputType="text"
                 android:maxLines="1"
                 android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_secondary"
+                android:textColorHint="@color/search_hint"
                 android:imeOptions="actionSearch"
-                android:background="@android:color/transparent" />
+                android:background="@android:color/transparent"
+                android:padding="0dp" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
