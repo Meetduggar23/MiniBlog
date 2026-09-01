@@ -4,14 +4,14 @@
 
     <item
         android:id="@+id/action_refresh"
-        android:icon="@android:drawable/ic_menu_revert"
+        android:icon="@drawable/ic_undo"
         android:title="Refresh"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/action_about"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="About"
-        app:showAsAction="never" />
+        android:id="@+id/action_overflow"
+        android:icon="@drawable/ic_more_vert"
+        android:title="More"
+        app:showAsAction="always" />
 
 </menu>

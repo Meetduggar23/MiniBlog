@@ -105,16 +105,29 @@ class MainActivity : AppCompatActivity() {
                 loadPosts()
                 true
             }
-            R.id.action_about -> {
-                Toast.makeText(
-                    this,
-                    "Mini Blog Explorer v1.0\nPowered by jsonplaceholder.typicode.com",
-                    Toast.LENGTH_LONG
-                ).show()
+            R.id.action_overflow -> {
+                showOverflowMenu()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showOverflowMenu() {
+        val options = arrayOf("Refresh", "About", "Cancel")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Options")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> loadPosts()
+                    1 -> Toast.makeText(
+                        this,
+                        "Mini Blog Explorer v1.0\nPowered by jsonplaceholder.typicode.com",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            .show()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

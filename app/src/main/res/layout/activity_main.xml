@@ -7,35 +7,42 @@
     android:background="@color/background">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.Miniblog.Toolbar">
+        android:background="@color/primary"
+        app:elevation="0dp">
 
+        <!-- Toolbar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/primary"
             app:titleTextColor="@color/toolbar_icon"
-            app:menu="@menu/menu_main" />
+            app:menu="@menu/menu_main"
+            app:popupTheme="@style/ThemeOverlay.Material3.Light" />
 
+        <!-- Search bar overlapping content -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/searchLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginTop="-4dp"
+            android:layout_marginBottom="12dp"
             android:hint="Search posts..."
             app:boxBackgroundMode="outline"
-            app:boxCornerRadiusTopStart="24dp"
-            app:boxCornerRadiusTopEnd="24dp"
-            app:boxCornerRadiusBottomStart="24dp"
-            app:boxCornerRadiusBottomEnd="24dp"
-            app:boxStrokeColor="@color/search_stroke"
-            app:hintTextColor="@color/accent"
+            app:boxCornerRadiusTopStart="28dp"
+            app:boxCornerRadiusTopEnd="28dp"
+            app:boxCornerRadiusBottomStart="28dp"
+            app:boxCornerRadiusBottomEnd="28dp"
+            app:boxStrokeWidth="0dp"
+            app:boxBackgroundColor="@color/search_bg"
+            app:hintTextColor="@color/text_secondary"
             app:startIconDrawable="@drawable/ic_search"
-            app:boxBackgroundColor="@color/search_bg">
+            app:startIconTint="@color/text_secondary"
+            app:elevation="4dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextSearch"
@@ -45,7 +52,8 @@
                 android:maxLines="1"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary"
-                android:imeOptions="actionSearch" />
+                android:imeOptions="actionSearch"
+                android:background="@android:color/transparent" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -66,7 +74,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:padding="8dp" />
+                android:paddingTop="8dp"
+                android:paddingBottom="80dp"
+                android:paddingHorizontal="8dp" />
 
             <ProgressBar
                 android:id="@+id/progressBar"
@@ -85,17 +95,9 @@
                 android:visibility="gone">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="No data"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="16sp" />
-
-                <TextView
                     android:id="@+id/textViewMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:textSize="16sp"
                     android:textColor="@color/text_secondary" />
 
@@ -122,13 +124,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
         android:src="@android:drawable/ic_input_add"
         android:contentDescription="Create Post"
         app:backgroundTint="@color/primary"
         app:tint="@color/on_primary"
         app:fabSize="normal"
-        app:elevation="6dp" />
+        app:elevation="6dp"
+        app:borderWidth="0dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

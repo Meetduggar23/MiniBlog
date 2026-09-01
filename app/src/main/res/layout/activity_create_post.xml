@@ -10,7 +10,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.Miniblog.Toolbar">
+        android:background="@color/primary">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -45,7 +45,7 @@
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxStrokeColor="@color/primary"
-                app:hintTextColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:helperText="Required"
                 app:helperTextEnabled="false">
 
@@ -72,7 +72,7 @@
                 app:boxCornerRadiusBottomStart="8dp"
                 app:boxCornerRadiusBottomEnd="8dp"
                 app:boxStrokeColor="@color/primary"
-                app:hintTextColor="@color/accent"
+                app:hintTextColor="@color/text_secondary"
                 app:helperText="Required"
                 app:helperTextEnabled="false">
 
