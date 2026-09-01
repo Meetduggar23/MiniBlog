@@ -1,6 +1,9 @@
-# 📱 Mini Blog Explorer
-
-A clean, modern Android blog reader app built with Kotlin, Material Design 3, and coroutines. Fetches posts from [JSONPlaceholder](https://jsonplaceholder.typicode.com) API, displays them in a beautiful card-based list, lets you view comments on each post, and create new posts.
+<div align="center">
+  <img src="appicon.png" alt="Mini Blog Explorer Icon" width="200">
+  <h1>Mini Blog Explorer</h1>
+  <p>A clean, modern Android blog reader app built with Kotlin, Material Design 3, and coroutines.</p>
+  <p>Fetches posts from <a href="https://jsonplaceholder.typicode.com">JSONPlaceholder</a> API, displays them in a beautiful card-based list, lets you view comments on each post, and create new posts.</p>
+</div>
 
 ---
 
@@ -17,42 +20,6 @@ A clean, modern Android blog reader app built with Kotlin, Material Design 3, an
 | 📴 **Offline Handling** | Retry button when no internet connection |
 | 💾 **State Preservation** | Data survives screen rotation |
 | 🎨 **Material 3 UI** | Modern design with cards, FAB, toolbars, and animations |
-
----
-
-## 🏗️ Architecture
-
-```
-app/src/main/java/com/example/miniblog/
-├── MainActivity.kt          # Posts list with search & pull-to-refresh
-├── PostAdapter.kt           # ListAdapter with DiffUtil for smooth updates
-├── PostDetailActivity.kt    # Post detail + comments screen
-├── CommentAdapter.kt        # Comments list adapter
-├── CreatePostActivity.kt    # Create-a-post form with validation
-├── model/
-│   ├── Post.kt              # Post data class
-│   └── Comment.kt           # Comment data class
-├── network/
-│   ├── NetworkUtils.kt      # Connectivity check utility
-│   ├── NetworkResult.kt     # Sealed class for success/error wrapping
-│   └── NetworkClient.kt     # HttpURLConnection GET/POST engine
-└── data/
-    ├── JsonParser.kt        # JSON ↔ Kotlin object conversion
-    └── PostRepository.kt    # Repository pattern (network + parsing)
-```
-
-## 🛠️ Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Language | Kotlin |
-| UI | Material Design 3 + ViewBinding |
-| Async | Kotlin Coroutines + lifecycleScope |
-| Networking | HttpURLConnection (no external HTTP library) |
-| JSON | org.json (Android built-in) |
-| Lists | RecyclerView + ListAdapter + DiffUtil |
-| Min SDK | API 24 (Android 7.0) |
-| Target SDK | API 35 (Android 15) |
 
 ---
 
