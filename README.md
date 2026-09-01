@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="appicon.png" alt="Mini Blog Explorer Icon" width="200">
+  <img src="appicon.png" alt="Mini Blog Explorer Icon" width="100">
   <h1>Mini Blog Explorer</h1>
   <p>A clean, modern Android blog reader app built with Kotlin, Material Design 3, and coroutines.</p>
   <p>Fetches posts from <a href="https://jsonplaceholder.typicode.com">JSONPlaceholder</a> API, displays them in a beautiful card-based list, lets you view comments on each post, and create new posts.</p>
