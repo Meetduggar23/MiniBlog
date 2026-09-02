@@ -21,14 +21,33 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/textViewTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
-            android:lineSpacingMultiplier="1.35" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textViewTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingMultiplier="1.35" />
+
+            <ImageButton
+                android:id="@+id/buttonDelete"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_delete"
+                app:tint="@color/error"
+                android:contentDescription="@string/delete_post" />
+
+        </LinearLayout>
 
         <View
             android:layout_width="38dp"
@@ -46,6 +65,81 @@
             android:textSize="13sp"
             android:textColor="@color/text_secondary"
             android:lineSpacingMultiplier="1.5" />
+
+        <TextView
+            android:id="@+id/textViewTags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="11sp"
+            android:textColor="@color/accent"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textViewDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <ImageButton
+                android:id="@+id/buttonLike"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_heart_outline"
+                app:tint="@color/text_secondary"
+                android:contentDescription="@string/like_post" />
+
+            <TextView
+                android:id="@+id/textViewLikes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="18dp"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+            <ImageButton
+                android:id="@+id/buttonBookmark"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_bookmark_outline"
+                app:tint="@color/text_secondary"
+                android:contentDescription="@string/save_post" />
+
+            <ImageView
+                android:id="@+id/imageViewViews"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_visibility"
+                app:tint="@color/text_secondary"
+                android:contentDescription="@string/view_count" />
+
+            <TextView
+                android:id="@+id/textViewViews"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:minWidth="18dp"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

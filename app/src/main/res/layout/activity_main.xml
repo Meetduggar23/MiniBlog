@@ -61,6 +61,20 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- All / Saved / Drafts tabs -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/primary"
+            app:tabIndicatorColor="@color/on_primary"
+            app:tabIndicatorHeight="3dp"
+            app:tabTextColor="@color/toolbar_icon"
+            app:tabSelectedTextColor="@color/on_primary"
+            app:tabRippleColor="@android:color/transparent"
+            app:tabGravity="fill"
+            app:tabMode="fixed" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -81,6 +95,16 @@
                 android:paddingTop="8dp"
                 android:paddingBottom="80dp"
                 android:paddingHorizontal="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewDrafts"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="8dp"
+                android:paddingBottom="80dp"
+                android:paddingHorizontal="8dp"
+                android:visibility="gone" />
 
             <ProgressBar
                 android:id="@+id/progressBar"
@@ -140,8 +164,7 @@
                     android:text="@string/empty_feed_title"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    android:visibility="gone" />
+                    android:textColor="@color/text_primary" />
 
                 <TextView
                     android:id="@+id/textViewEmptySubtitle"
@@ -152,15 +175,15 @@
                     android:textSize="14sp"
                     android:textColor="@color/text_secondary"
                     android:gravity="center"
-                    android:maxWidth="280dp"
-                    android:visibility="gone" />
+                    android:maxWidth="280dp" />
 
                 <TextView
                     android:id="@+id/textViewMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonCreatePost"
@@ -171,10 +194,68 @@
                     android:textAllCaps="false"
                     android:textColor="@color/on_primary"
                     app:backgroundTint="@color/primary"
-                    app:cornerRadius="8dp"
-                    android:visibility="gone" />
+                    app:cornerRadius="8dp" />
 
             </LinearLayout>
+
+            <!-- Recent searches overlay, shown when the search field is
+                 focused and empty. Drawn last so it sits above the feed. -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRecentSearches"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/card_background"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/recent_searches"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/textViewClearSearches"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="6dp"
+                            android:text="@string/clear"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerRecentSearches"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </FrameLayout>
 

@@ -22,10 +22,10 @@ object NetworkClient {
             if (code in 200..299) {
                 NetworkResult.Success(readStream(connection.inputStream))
             } else {
-                NetworkResult.Error("Server returned HTTP $code")
+                NetworkResult.Error("Something went wrong on the server. Please try again.")
             }
         } catch (e: Exception) {
-            NetworkResult.Error("Network error: ${e.message}")
+            NetworkResult.Error("Couldn't reach the server. Check your internet connection and try again.")
         } finally {
             connection?.disconnect()
         }
@@ -45,10 +45,10 @@ object NetworkClient {
             if (code in 200..299) {
                 NetworkResult.Success(readStream(connection.inputStream))
             } else {
-                NetworkResult.Error("Server returned HTTP $code")
+                NetworkResult.Error("Something went wrong on the server. Please try again.")
             }
         } catch (e: Exception) {
-            NetworkResult.Error("Network error: ${e.message}")
+            NetworkResult.Error("Couldn't reach the server. Check your internet connection and try again.")
         } finally {
             connection?.disconnect()
         }
@@ -77,9 +77,40 @@ object NetworkClient {
             val body = readStream(stream)
 
             if (code in 200..299) NetworkResult.Success(body)
-            else NetworkResult.Error("Server returned HTTP $code")
+            else NetworkResult.Error("Something went wrong on the server. Please try again.")
         } catch (e: Exception) {
-            NetworkResult.Error("Network error: ${e.message}")
+            NetworkResult.Error("Couldn't reach the server. Check your internet connection and try again.")
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
+    fun put(endpoint: String, jsonBody: String): NetworkResult<String> {
+        var connection: HttpURLConnection? = null
+        return try {
+            val url = URL(BASE_URL + endpoint)
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "PUT"
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.doOutput = true
+            connection.setRequestProperty(
+                "Content-Type", "application/json; charset=UTF-8"
+            )
+
+            connection.outputStream.use { os ->
+                os.write(jsonBody.toByteArray(Charsets.UTF_8))
+            }
+
+            val code = connection.responseCode
+            val stream = if (code in 200..299)
+                connection.inputStream else connection.errorStream
+            val body = readStream(stream)
+
+            if (code in 200..299) NetworkResult.Success(body)
+            else NetworkResult.Error("Something went wrong on the server. Please try again.")
+        } catch (e: Exception) {
+            NetworkResult.Error("Couldn't reach the server. Check your internet connection and try again.")
         } finally {
             connection?.disconnect()
         }
