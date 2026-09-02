@@ -21,8 +21,7 @@
             android:background="@color/primary"
             app:logo="@drawable/logo_toolbar"
             app:titleTextColor="@color/toolbar_icon"
-            app:navigationIconTint="@color/toolbar_icon"
-            app:popupTheme="@style/ThemeOverlay.Material3.Light" />
+            app:navigationIconTint="@color/toolbar_icon" />
 
         <!-- Search bar overlapping content -->
         <com.google.android.material.textfield.TextInputLayout

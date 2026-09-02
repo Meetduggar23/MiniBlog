@@ -3,6 +3,7 @@ package com.example.miniblog
 import android.content.Intent
 import android.widget.Toast
 import android.os.Bundle
+import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -51,6 +52,9 @@ class MainActivity : AppCompatActivity() {
 
     /** Id of a delete currently in flight — guards against double actions. */
     private var deletingPostId: Int? = null
+
+    /** Bulk-select (ActionMode) state. */
+    private var selectionActionMode: ActionMode? = null
 
     private val createPostLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -110,7 +114,8 @@ class MainActivity : AppCompatActivity() {
             onDeleteClick = { post -> confirmDeletePost(post) },
             onLikeClick = { post, position -> toggleLike(post, position) },
             onBookmarkClick = { post, position -> toggleBookmark(post, position) },
-            onLongPressClick = { post -> showPostActions(post) }
+            onLongPressToSelect = { post -> startSelectionMode(post) },
+            onSelectionChanged = { count -> updateSelectionTitle(count) }
         )
         binding.recyclerViewPosts.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewPosts.adapter = adapter
@@ -129,9 +134,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.swipeRefresh.setOnRefreshListener {
             // Refresh from network + local
-            loadPosts()
+            loadPosts(onComplete = {
+                binding.swipeRefresh.isRefreshing = false
+            })
             loadDrafts()
-            binding.swipeRefresh.isRefreshing = false
         }
 
         binding.fabCreate.setOnClickListener {
@@ -177,6 +183,9 @@ class MainActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 override fun afterTextChanged(s: android.text.Editable?) {
                     currentSearchQuery = s?.toString()?.trim() ?: ""
+                    // A changed filter invalidates the current selection, so
+                    // leave selection mode for predictable behaviour.
+                    exitSelectionMode()
                     refreshUi()
                     updateRecentSearchesVisibility()
                 }
@@ -242,12 +251,13 @@ class MainActivity : AppCompatActivity() {
      * Flow: Connectivity check → HttpURLConnection GET /posts →
      *       JSONArray parsing → merge with local → display
      */
-    private fun loadPosts() {
+    private fun loadPosts(onComplete: (() -> Unit)? = null) {
         // Check connectivity before attempting network request
         if (!NetworkUtils.isNetworkAvailable(this)) {
             // Offline: show local posts only
             allPosts = postStore.getPosts()
             refreshUi()
+            onComplete?.invoke()
             return
         }
 
@@ -271,6 +281,7 @@ class MainActivity : AppCompatActivity() {
                         .distinctBy { it.id }
                         .sortedByDescending { it.createdAt }
                     refreshUi()
+                    onComplete?.invoke()
                 }
                 is NetworkResult.Error -> {
                     binding.progressBar.visibility = View.GONE
@@ -295,6 +306,7 @@ class MainActivity : AppCompatActivity() {
                     Snackbar.make(
                         binding.root, result.message, Snackbar.LENGTH_SHORT
                     ).show()
+                    onComplete?.invoke()
                 }
             }
         }
@@ -423,37 +435,10 @@ class MainActivity : AppCompatActivity() {
         detailLauncher.launch(intent)
     }
 
-    private fun openEditPost(post: Post) {
-        val intent = Intent(this, CreatePostActivity::class.java)
-        intent.putExtra(CreatePostActivity.EXTRA_EDIT_POST_ID, post.id)
-        intent.putExtra(CreatePostActivity.EXTRA_EDIT_TITLE, post.title)
-        intent.putExtra(CreatePostActivity.EXTRA_EDIT_BODY, post.body)
-        intent.putExtra(CreatePostActivity.EXTRA_EDIT_TAGS, post.tags.joinToString(", "))
-        intent.putExtra(CreatePostActivity.EXTRA_EDIT_CREATED_AT, post.createdAt)
-        createPostLauncher.launch(intent)
-    }
-
     private fun openDraft(draft: Draft) {
         val intent = Intent(this, CreatePostActivity::class.java)
         intent.putExtra(CreatePostActivity.EXTRA_DRAFT_ID, draft.id)
         createPostLauncher.launch(intent)
-    }
-
-    private fun showPostActions(post: Post) {
-        val options = arrayOf(
-            getString(R.string.edit),
-            getString(R.string.delete),
-            getString(R.string.cancel)
-        )
-        AlertDialog.Builder(this)
-            .setTitle(post.title.replaceFirstChar { it.uppercase() })
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> openEditPost(post)
-                    1 -> confirmDeletePost(post)
-                }
-            }
-            .show()
     }
 
     // ---------------------------------------------------------------------
@@ -514,6 +499,115 @@ class MainActivity : AppCompatActivity() {
         JsonParser.parsePost(postJson)
     } catch (e: Exception) {
         null
+    }
+
+    // ---------------------------------------------------------------------
+    // Bulk select mode (ActionMode)
+    // ---------------------------------------------------------------------
+
+    private val selectionCallback = object : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+            mode.menuInflater.inflate(R.menu.menu_selection, menu)
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+            // Hide "Delete Selected" when nothing is selected.
+            val deleteItem = menu.findItem(R.id.action_delete_selected)
+            deleteItem?.isVisible = adapter.selectedCount() > 0
+            return true
+        }
+
+        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+            return when (item.itemId) {
+                R.id.action_select_all -> {
+                    val n = adapter.selectAll()
+                    if (n == 0) {
+                        Snackbar.make(
+                            binding.root, R.string.no_posts, Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                    mode.invalidate()
+                    true
+                }
+                R.id.action_deselect_all -> {
+                    adapter.deselectAll()
+                    mode.invalidate()
+                    true
+                }
+                R.id.action_delete_selected -> {
+                    confirmDeleteSelected()
+                    true
+                }
+                R.id.action_close_selection -> {
+                    exitSelectionMode()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode) {
+            adapter.exitSelectionMode()
+            selectionActionMode = null
+        }
+    }
+
+    /** Long-press on a card: begin bulk selection with that post selected. */
+    private fun startSelectionMode(post: Post) {
+        if (selectionActionMode != null) return
+        selectionActionMode = startActionMode(selectionCallback)
+        adapter.enterSelectionMode(post.id)
+    }
+
+    /** Refreshes the ActionMode title / menu when the selection changes. */
+    private fun updateSelectionTitle(count: Int) {
+        val mode = selectionActionMode ?: return
+        mode.title = getString(R.string.selected_count, count)
+        mode.invalidate()
+    }
+
+    private fun exitSelectionMode() {
+        selectionActionMode?.finish()
+        selectionActionMode = null
+        adapter.exitSelectionMode()
+    }
+
+    private fun confirmDeleteSelected() {
+        val ids = adapter.selectedPostIds()
+        if (ids.isEmpty()) return
+        val posts = allPosts.filter { ids.contains(it.id) }
+        if (posts.isEmpty()) return
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete)
+            .setMessage(getString(R.string.delete_selected_confirm, posts.size))
+            .setPositiveButton(R.string.delete) { _, _ -> softDeleteSelected(posts) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /** Soft-deletes the selected posts (reversible via Undo). */
+    private fun softDeleteSelected(posts: List<Post>) {
+        if (posts.isEmpty()) return
+        posts.forEach { post ->
+            postStore.addPost(post.copy(deletedAt = System.currentTimeMillis()))
+        }
+        val deletedIds = posts.map { it.id }.toSet()
+        allPosts = allPosts.filter { !deletedIds.contains(it.id) }
+        exitSelectionMode()
+        refreshUi()
+        Snackbar.make(
+            binding.root, getString(R.string.posts_deleted, posts.size), Snackbar.LENGTH_LONG
+        ).setAction(R.string.undo) { restoreSelectedPosts(posts) }.show()
+    }
+
+    private fun restoreSelectedPosts(posts: List<Post>) {
+        posts.forEach { post ->
+            postStore.addPost(post.copy(deletedAt = null))
+        }
+        loadPosts()
+        Snackbar.make(binding.root, R.string.posts_restored, Snackbar.LENGTH_SHORT).show()
     }
 
     // ---------------------------------------------------------------------
@@ -604,6 +698,35 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(binding.root, R.string.post_restored, Snackbar.LENGTH_SHORT).show()
     }
 
+    /** Delete all currently shown feed posts (not the trash) with confirmation. */
+    private fun confirmDeleteAll() {
+        val toDelete = allPosts
+        if (toDelete.isEmpty()) {
+            Snackbar.make(binding.root, R.string.no_posts, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_all)
+            .setMessage(getString(R.string.delete_all_confirm, toDelete.size))
+            .setPositiveButton(R.string.delete) { _, _ -> softDeleteAll(toDelete) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /** Soft-deletes every shown feed post (reversible via Undo). */
+    private fun softDeleteAll(posts: List<Post>) {
+        if (posts.isEmpty()) return
+        posts.forEach { post ->
+            postStore.addPost(post.copy(deletedAt = System.currentTimeMillis()))
+        }
+        val deletedIds = posts.map { it.id }.toSet()
+        allPosts = allPosts.filter { !deletedIds.contains(it.id) }
+        refreshUi()
+        Snackbar.make(
+            binding.root, getString(R.string.posts_deleted, posts.size), Snackbar.LENGTH_LONG
+        ).setAction(R.string.undo) { restoreSelectedPosts(posts) }.show()
+    }
+
     private fun confirmDeleteDraft(draft: Draft) {
         AlertDialog.Builder(this)
             .setTitle(R.string.delete_draft_confirm)
@@ -645,6 +768,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.my_blog),
             getString(R.string.trash),
             getString(R.string.theme),
+            getString(R.string.delete_all),
             getString(R.string.about)
         )
         AlertDialog.Builder(this)
@@ -655,7 +779,8 @@ class MainActivity : AppCompatActivity() {
                     1 -> startActivity(Intent(this, StatsActivity::class.java))
                     2 -> startActivity(Intent(this, TrashActivity::class.java))
                     3 -> showThemeMenu()
-                    4 -> Toast.makeText(
+                    4 -> confirmDeleteAll()
+                    5 -> Toast.makeText(
                         this,
                         "MiniBlog v1.0\nYour posts are saved on this device.",
                         Toast.LENGTH_LONG

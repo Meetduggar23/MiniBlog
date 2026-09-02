@@ -105,4 +105,17 @@
     <string name="stats_total_likes">Total Likes</string>
     <string name="stats_total_views">Total Views</string>
     <string name="stats_this_month">Posts This Month</string>
+    <string name="select_post">Select post</string>
+    <string name="deselect_post">Deselect post</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="select_all">Select all</string>
+    <string name="deselect_all">Deselect all</string>
+    <string name="delete_selected">Delete selected</string>
+    <string name="delete_selected_confirm">Delete all %1$d selected post(s)?</string>
+    <string name="close_selection">Close selection</string>
+    <string name="delete_all">Delete all</string>
+    <string name="delete_all_confirm">Delete all %1$d post(s)?</string>
+    <string name="posts_deleted">%1$d post(s) deleted</string>
+    <string name="posts_restored">Posts restored</string>
+    <string name="no_posts">No posts</string>
 </resources>

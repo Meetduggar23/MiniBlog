@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small MiniBlog mark centered on the launcher icon. The background layer
+     (white) fills the full canvas, so this is inset to leave a white margin
+     around the small logo and keep it within the adaptive-icon safe zone. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="68dp"
+        android:height="68dp"
+        android:gravity="center"
+        android:drawable="@drawable/ic_logo" />
+</layer-list>
