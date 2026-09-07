@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="appicon2.png" alt="Mini Blog Explorer" width="100">
+  <img src="appicon2.png" alt="Mini Blog Explorer" width="150">
 </div>
 
 <div align="center"> Mini Blog Explorer </div>
