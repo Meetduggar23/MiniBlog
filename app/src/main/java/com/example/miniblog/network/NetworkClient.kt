@@ -6,7 +6,7 @@ import java.net.URL
 
 object NetworkClient {
 
-    private const val BASE_URL = "https://jsonplaceholder.typicode.com"
+    private const val BASE_URL = "https://dummyjson.com"
 
     fun get(endpoint: String): NetworkResult<String> {
         var connection: HttpURLConnection? = null

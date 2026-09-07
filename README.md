@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="appicon.png" alt="Mini Blog Explorer" width="100">
+  <img src="appicon2.png" alt="Mini Blog Explorer" width="100">
 </div>
 
 <div align="center"> Mini Blog Explorer </div>
@@ -7,7 +7,7 @@
 <br>
 A clean, modern Android blog reader app built with Kotlin, Material Design 3, and coroutines.
 
-Fetches posts from [JSONPlaceholder](https://jsonplaceholder.typicode.com) API, displays them in a card-based list, lets you view comments on each post, and create new posts.
+Fetches posts from the [DummyJSON](https://dummyjson.com) API (English sample dataset), displays them in a card-based list, lets you view comments on each post, and create new posts.
 
 ---
 
@@ -64,7 +64,7 @@ Fetches posts from [JSONPlaceholder](https://jsonplaceholder.typicode.com) API, 
 
 ### Basic Flow
 
-1. **Launch the app** - Posts load from JSONPlaceholder API
+1. **Launch the app** - Posts load from the DummyJSON API
 2. **Tap any post** - Detail screen opens with title, body, and comments
 3. **Press back** - Returns to post list
 4. **Tap the + FAB** - Create Post screen opens

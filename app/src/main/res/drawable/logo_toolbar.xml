@@ -5,5 +5,5 @@
         android:width="36dp"
         android:height="36dp"
         android:gravity="fill"
-        android:drawable="@drawable/ic_logo" />
+        android:drawable="@drawable/appicon2" />
 </layer-list>

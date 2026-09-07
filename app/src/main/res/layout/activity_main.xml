@@ -4,13 +4,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/primary"
+        android:fitsSystemWindows="true"
         app:elevation="0dp">
 
         <!-- Toolbar -->
@@ -29,14 +31,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="10dp"
             android:hint="@string/search_hint"
             app:boxBackgroundMode="outline"
-            app:boxCornerRadiusTopStart="28dp"
-            app:boxCornerRadiusTopEnd="28dp"
-            app:boxCornerRadiusBottomStart="28dp"
-            app:boxCornerRadiusBottomEnd="28dp"
+            app:boxCornerRadiusTopStart="22dp"
+            app:boxCornerRadiusTopEnd="22dp"
+            app:boxCornerRadiusBottomStart="22dp"
+            app:boxCornerRadiusBottomEnd="22dp"
             app:boxStrokeWidth="0dp"
             app:boxBackgroundColor="@color/search_bg"
             app:hintTextColor="@color/search_hint"
@@ -120,9 +122,9 @@
                 android:gravity="center"
                 android:orientation="vertical"
                 android:visibility="gone"
-                android:padding="32dp">
+                android:padding="20dp">
 
-                <!-- Brand mark: complete square logo, no circle, no background,
+                <!-- Brand mark: official appicon2 logo, no circle, no background,
                      original aspect ratio preserved via fitCenter -->
                 <ImageView
                     android:id="@+id/imageViewEmptyLogo"
@@ -130,7 +132,7 @@
                     android:layout_height="72dp"
                     android:layout_marginBottom="4dp"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/ic_logo"
+                    android:src="@drawable/appicon2"
                     android:contentDescription="@string/app_name"
                     android:visibility="gone" />
 

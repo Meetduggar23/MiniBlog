@@ -10,10 +10,12 @@ import kotlinx.coroutines.withContext
 class PostRepository {
 
     // --- FETCH ALL POSTS: demonstrates full network flow ---
-    // Connectivity check → HttpURLConnection GET → read response → parse JSONArray
+    // Connectivity check → HttpURLConnection GET → read response → parse JSONArray.
+    // DummyJSON returns posts in an English sample dataset (wrapped in a
+    // top-level "posts" array). limit=0 asks for every post.
     suspend fun getAllPosts(): NetworkResult<List<Post>> =
         withContext(Dispatchers.IO) {
-            when (val result = NetworkClient.get("/posts")) {
+            when (val result = NetworkClient.get("/posts?limit=0")) {
                 is NetworkResult.Success ->
                     try {
                         NetworkResult.Success(
@@ -47,8 +49,8 @@ class PostRepository {
         }
 
     /**
-     * Updates a remote post via PUT /posts/{id}. Simulated by JSONPlaceholder;
-     * the caller persists the result locally so the UI stays authoritative.
+     * Updates a remote post via PUT /posts/{id}. DummyJSON returns the updated
+     * post; the caller persists the result locally so the UI stays authoritative.
      */
     suspend fun updatePost(postId: Int, title: String, body: String): NetworkResult<Post> =
         withContext(Dispatchers.IO) {
@@ -67,15 +69,11 @@ class PostRepository {
             NetworkClient.delete("/posts/$postId")
         }
 
-    /**
-     * Publishes a post and returns the created post built from the backend
-     * response (including the backend-assigned id when one is returned).
-     * The caller assigns the device-local id before showing it in the feed.
-     */
+    /** Publishes a post via POST /posts/add and returns the created post. */
     suspend fun createPost(title: String, body: String): NetworkResult<Post> =
         withContext(Dispatchers.IO) {
             val json = JsonParser.buildPostJson(title, body, 1)
-            when (val result = NetworkClient.post("/posts", json)) {
+            when (val result = NetworkClient.post("/posts/add", json)) {
                 is NetworkResult.Success ->
                     NetworkResult.Success(
                         Post(

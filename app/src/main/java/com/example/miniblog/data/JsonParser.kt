@@ -10,12 +10,15 @@ object JsonParser {
     // --- JSON PARSING: JSONArray + JSONObject (demonstrates assignment req.) ---
 
     /**
-     * Parses a JSON array of posts fetched from the remote API.
-     * Demonstrates: JSONArray iteration + JSONObject field extraction.
+     * Parses the JSON response of posts fetched from the remote API.
+     * DummyJSON wraps the list in a top-level "posts" array:
+     * { "posts": [ { ... }, ... ], "total": ..., "skip": 0, "limit": <n> }
+     * Demonstrates: JSONObject field access + JSONArray iteration.
      */
     fun parsePosts(jsonString: String): List<Post> {
         val posts = mutableListOf<Post>()
-        val array = JSONArray(jsonString) // JSONArray: the full posts response
+        // Extract the wrapped "posts" JSONArray from the response object.
+        val array = JSONObject(jsonString).getJSONArray("posts")
         for (i in 0 until array.length()) {
             val obj = array.getJSONObject(i) // JSONObject: each individual post
             posts.add(
@@ -31,17 +34,27 @@ object JsonParser {
         return posts
     }
 
+    /**
+     * Parses the comments response. DummyJSON wraps them in a top-level
+     * "comments" array: { "comments": [ { ... }, ... ] }. Each comment carries a
+     * nested "user" object, so the commenter's name and handle are read from it.
+     */
     fun parseComments(jsonString: String): List<Comment> {
         val comments = mutableListOf<Comment>()
-        val array = JSONArray(jsonString)
+        val array = JSONObject(jsonString).getJSONArray("comments")
         for (i in 0 until array.length()) {
             val obj = array.getJSONObject(i)
+            val user = obj.optJSONObject("user")
             comments.add(
                 Comment(
                     postId = obj.optInt("postId"),
                     id = obj.optInt("id"),
-                    name = obj.optString("name"),
-                    email = obj.optString("email"),
+                    name = user?.optString("fullName")
+                        ?.takeIf { it.isNotBlank() }
+                        ?: user?.optString("username") ?: "",
+                    email = user?.optString("username")
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { "@$it" } ?: "",
                     body = obj.optString("body")
                 )
             )

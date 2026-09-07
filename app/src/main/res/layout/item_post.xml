@@ -116,8 +116,8 @@
 
             <ImageButton
                 android:id="@+id/buttonLike"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_heart_outline"
                 app:tint="@color/text_secondary"
@@ -131,11 +131,11 @@
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary" />
 
-            <ImageButton
+<ImageButton
                 android:id="@+id/buttonBookmark"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_bookmark_outline"
                 app:tint="@color/text_secondary"
