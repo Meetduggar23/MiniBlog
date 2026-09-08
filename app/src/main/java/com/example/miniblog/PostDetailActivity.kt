@@ -56,7 +56,6 @@ class PostDetailActivity : AppCompatActivity() {
                     null
                 }
                 if (edited != null) {
-                    // Merge flags from existing post
                     val existing = currentPost
                     val merged = existing?.copy(
                         title = edited.title,
@@ -95,7 +94,6 @@ class PostDetailActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.post)
         binding.toolbar.setNavigationOnClickListener { finish() }
 
-        // Read post data from the JSON intent extra (sent by MainActivity)
         val postJson = intent.getStringExtra("POST_JSON")
         if (postJson != null) {
             try {
@@ -106,10 +104,8 @@ class PostDetailActivity : AppCompatActivity() {
                 postBody = post.body
                 postCreatedAt = post.createdAt
                 refreshDetail(post)
-                // Record view
                 statsStore.recordView(post.id)
             } catch (e: Exception) {
-                // fallback to individual extras
                 readFallbackExtras()
             }
         } else {
@@ -125,7 +121,6 @@ class PostDetailActivity : AppCompatActivity() {
         binding.recyclerViewComments.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewComments.adapter = adapter
 
-        // Restore comments on rotation
         if (savedInstanceState != null) {
             val names = savedInstanceState.getStringArrayList(KEY_COMMENT_NAMES)
             val emails = savedInstanceState.getStringArrayList(KEY_COMMENT_EMAILS)
@@ -173,7 +168,6 @@ class PostDetailActivity : AppCompatActivity() {
         binding.textViewDetailTitle.text = post.title.replaceFirstChar { it.uppercase() }
         binding.textViewDetailBody.text = post.body
 
-        // Date
         if (post.createdAt > 0) {
             binding.textViewDetailDate.visibility = View.VISIBLE
             binding.textViewDetailDate.text = PostDateFormatter.format(post.createdAt)
@@ -181,7 +175,6 @@ class PostDetailActivity : AppCompatActivity() {
             binding.textViewDetailDate.visibility = View.GONE
         }
 
-        // Tags
         if (post.tags.isNotEmpty()) {
             binding.textViewDetailTags.visibility = View.VISIBLE
             binding.textViewDetailTags.text = post.tags.joinToString("  ") { "#$it" }
@@ -189,10 +182,8 @@ class PostDetailActivity : AppCompatActivity() {
             binding.textViewDetailTags.visibility = View.GONE
         }
 
-        // View count
         binding.textViewDetailViews.text = statsStore.viewCount(post.id).toString()
 
-        // Pin indicator
         if (post.isPinned) {
             binding.textViewPinned.visibility = View.VISIBLE
         } else {
@@ -225,10 +216,8 @@ class PostDetailActivity : AppCompatActivity() {
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         val post = currentPost
         if (post != null) {
-            // Update pin menu item text
             menu.findItem(R.id.action_pin)?.title =
                 getString(if (post.isPinned) R.string.unpin_post else R.string.pin_post)
-            // Update bookmark menu item text
             menu.findItem(R.id.action_bookmark)?.title =
                 getString(if (post.isBookmarked) R.string.remove_saved_post else R.string.save_post)
         }
@@ -407,3 +396,4 @@ class PostDetailActivity : AppCompatActivity() {
         binding.textViewCommentsMessage.visibility = View.VISIBLE
     }
 }
+

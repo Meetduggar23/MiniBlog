@@ -91,7 +91,6 @@ class CreatePostActivity : AppCompatActivity() {
 
         setupWatchers()
 
-        // Back (gesture/button) goes through the same guard as the toolbar.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 handleBack()
@@ -102,9 +101,6 @@ class CreatePostActivity : AppCompatActivity() {
         updateCounter()
     }
 
-    // ---------------------------------------------------------------------
-    // Typing: counters + debounced autosave (create/draft modes only)
-    // ---------------------------------------------------------------------
 
     private fun setupWatchers() {
         val watcher = object : android.text.TextWatcher {
@@ -127,7 +123,7 @@ class CreatePostActivity : AppCompatActivity() {
     }
 
     private fun scheduleAutosave() {
-        if (isEditMode) return // edit mode uses the unsaved-changes dialog
+        if (isEditMode) return
         autosaveHandler.removeCallbacks(autosaveRunnable)
         val title = binding.editTextTitle.text.toString().trim()
         val body = binding.editTextBody.text.toString().trim()
@@ -183,9 +179,6 @@ class CreatePostActivity : AppCompatActivity() {
         return title != originalTitle || body != originalBody || tags != originalTags
     }
 
-    // ---------------------------------------------------------------------
-    // Back navigation: draft dialog (create/draft) or discard warning (edit)
-    // ---------------------------------------------------------------------
 
     private fun handleBack() {
         if (!hasUnsavedChanges()) {
@@ -203,11 +196,10 @@ class CreatePostActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle(R.string.save_as_draft)
                 .setPositiveButton(R.string.save_draft) { _, _ ->
-                    autosaveDraft() // already autosaved; this captures the latest state
+                    autosaveDraft()
                     finish()
                 }
                 .setNegativeButton(R.string.discard) { _, _ ->
-                    // Abandon: remove the session draft entirely.
                     val idToRemove = if (isDraftMode) draftId else autosaveDraftId
                     if (idToRemove != -1) draftStore.removeDraft(idToRemove)
                     finish()
@@ -217,15 +209,11 @@ class CreatePostActivity : AppCompatActivity() {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Publish / save changes
-    // ---------------------------------------------------------------------
 
     private fun submitPost() {
         val title = binding.editTextTitle.text.toString().trim()
         val body = binding.editTextBody.text.toString().trim()
 
-        // Clear previous validation states
         binding.tilTitle.error = null
         binding.tilTitle.isErrorEnabled = false
         binding.tilBody.error = null
@@ -246,8 +234,6 @@ class CreatePostActivity : AppCompatActivity() {
         }
         if (hasError) return
 
-        // Editing a locally-managed post is a purely local operation — no
-        // network required. Creating always goes through the API.
         if (!isEditMode && !NetworkUtils.isNetworkAvailable(this)) {
             binding.textViewError.text = getString(R.string.offline_hint)
             binding.cardError.visibility = View.VISIBLE
@@ -274,16 +260,12 @@ class CreatePostActivity : AppCompatActivity() {
                     setSubmitting(false)
 
                     val created = if (isEditMode) {
-                        // Keep the original id and timestamp so the post
-                        // stays in its existing newest-first position.
                         result.data.copy(
                             id = editPostId,
                             createdAt = editCreatedAt,
                             tags = tags
                         )
                     } else {
-                        // The backend confirmed the publish; give the post its
-                        // device-local identity and actual creation timestamp.
                         result.data.copy(
                             id = postStore.nextLocalId(),
                             createdAt = submittedAt,
@@ -368,3 +350,4 @@ class CreatePostActivity : AppCompatActivity() {
         private const val AUTOSAVE_DELAY_MS = 800L
     }
 }
+

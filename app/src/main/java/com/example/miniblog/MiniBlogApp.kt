@@ -8,9 +8,9 @@ class MiniBlogApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Apply the saved theme (System / Light / Dark) before any UI shows.
         AppCompatDelegate.setDefaultNightMode(
             AppPreferences(this).getThemeMode()
         )
     }
 }
+

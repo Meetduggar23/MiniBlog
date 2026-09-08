@@ -9,17 +9,13 @@ import kotlinx.coroutines.withContext
 
 class PostRepository {
 
-    // --- FETCH ALL POSTS: demonstrates full network flow ---
-    // Connectivity check → HttpURLConnection GET → read response → parse JSONArray.
-    // DummyJSON returns posts in an English sample dataset (wrapped in a
-    // top-level "posts" array). limit=0 asks for every post.
     suspend fun getAllPosts(): NetworkResult<List<Post>> =
         withContext(Dispatchers.IO) {
             when (val result = NetworkClient.get("/posts?limit=0")) {
                 is NetworkResult.Success ->
                     try {
                         NetworkResult.Success(
-                            JsonParser.parsePosts(result.data) // JSONArray parsing
+                            JsonParser.parsePosts(result.data)
                         )
                     } catch (e: Exception) {
                         NetworkResult.Error(
@@ -88,3 +84,4 @@ class PostRepository {
             }
         }
 }
+

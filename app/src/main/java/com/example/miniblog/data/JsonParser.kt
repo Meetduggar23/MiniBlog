@@ -7,7 +7,6 @@ import org.json.JSONObject
 
 object JsonParser {
 
-    // --- JSON PARSING: JSONArray + JSONObject (demonstrates assignment req.) ---
 
     /**
      * Parses the JSON response of posts fetched from the remote API.
@@ -17,10 +16,9 @@ object JsonParser {
      */
     fun parsePosts(jsonString: String): List<Post> {
         val posts = mutableListOf<Post>()
-        // Extract the wrapped "posts" JSONArray from the response object.
         val array = JSONObject(jsonString).getJSONArray("posts")
         for (i in 0 until array.length()) {
-            val obj = array.getJSONObject(i) // JSONObject: each individual post
+            val obj = array.getJSONObject(i)
             posts.add(
                 Post(
                     userId = obj.optInt("userId"),
@@ -124,3 +122,4 @@ object JsonParser {
         return tags
     }
 }
+

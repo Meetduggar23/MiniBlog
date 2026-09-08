@@ -9,7 +9,6 @@ class AppPreferences(context: Context) {
     private val prefs = context.applicationContext
         .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    // ----- Theme -------------------------------------------------------------
 
     fun getThemeMode(): Int =
         prefs.getInt(KEY_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -18,7 +17,6 @@ class AppPreferences(context: Context) {
         prefs.edit().putInt(KEY_THEME, mode).apply()
     }
 
-    // ----- Sort order ----------------------------------------------------------
 
     fun getSortOrder(): String = prefs.getString(KEY_SORT, SORT_NEWEST) ?: SORT_NEWEST
 
@@ -26,7 +24,6 @@ class AppPreferences(context: Context) {
         prefs.edit().putString(KEY_SORT, order).apply()
     }
 
-    // ----- Recent searches -----------------------------------------------------
 
     fun getRecentSearches(): List<String> {
         val raw = prefs.getString(KEY_RECENT_SEARCHES, null) ?: return emptyList()
@@ -62,3 +59,4 @@ class AppPreferences(context: Context) {
         const val SORT_MOST_VIEWED = "most_viewed"
     }
 }
+

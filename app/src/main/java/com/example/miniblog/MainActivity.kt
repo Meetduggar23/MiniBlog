@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     private var currentTab = TAB_ALL
     private var sortOrder = AppPreferences.SORT_NEWEST
 
-    /** Id of a delete currently in flight — guards against double actions. */
+    /** Id of a delete currently in flight â€” guards against double actions. */
     private var deletingPostId: Int? = null
 
     /** Bulk-select (ActionMode) state. */
@@ -82,12 +82,10 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Bookmark/pin toggles made inside Post Detail.
             result.data?.getStringExtra("UPDATED_POST_JSON")?.let { json ->
                 parsePostOrNull(json)?.let { applyPostUpdate(it, showFeedback = false) }
                 return@registerForActivityResult
             }
-            // Edit performed from Post Detail — sync the feed as well.
             result.data?.getStringExtra(CreatePostActivity.EXTRA_CREATED_POST)?.let { json ->
                 handleEditedPost(json)
                 return@registerForActivityResult
@@ -133,7 +131,6 @@ class MainActivity : AppCompatActivity() {
         setupSearch()
 
         binding.swipeRefresh.setOnRefreshListener {
-            // Refresh from network + local
             loadPosts(onComplete = {
                 binding.swipeRefresh.isRefreshing = false
             })
@@ -152,9 +149,6 @@ class MainActivity : AppCompatActivity() {
         loadDrafts()
     }
 
-    // ---------------------------------------------------------------------
-    // Tabs
-    // ---------------------------------------------------------------------
 
     private fun setupTabs() {
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.tab_all))
@@ -172,9 +166,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    // ---------------------------------------------------------------------
-    // Search + recent searches
-    // ---------------------------------------------------------------------
 
     private fun setupSearch() {
         binding.editTextSearch.addTextChangedListener(
@@ -183,8 +174,6 @@ class MainActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 override fun afterTextChanged(s: android.text.Editable?) {
                     currentSearchQuery = s?.toString()?.trim() ?: ""
-                    // A changed filter invalidates the current selection, so
-                    // leave selection mode for predictable behaviour.
                     exitSelectionMode()
                     refreshUi()
                     updateRecentSearchesVisibility()
@@ -240,28 +229,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Data loading
-    // ---------------------------------------------------------------------
 
     /**
      * Loads posts from the remote API (network) and merges them with
      * locally-created posts. Shows a loading state while fetching.
      *
-     * Flow: Connectivity check → HttpURLConnection GET /posts →
-     *       JSONArray parsing → merge with local → display
+     * Flow: Connectivity check â†’ HttpURLConnection GET /posts â†’
+     *       JSONArray parsing â†’ merge with local â†’ display
      */
     private fun loadPosts(onComplete: (() -> Unit)? = null) {
-        // Check connectivity before attempting network request
         if (!NetworkUtils.isNetworkAvailable(this)) {
-            // Offline: show local posts only
             allPosts = postStore.getPosts()
             refreshUi()
             onComplete?.invoke()
             return
         }
 
-        // Show loading state while network request is in progress
         binding.progressBar.visibility = View.VISIBLE
         binding.layoutEmpty.visibility = View.GONE
         binding.recyclerViewPosts.visibility = View.GONE
@@ -270,10 +253,6 @@ class MainActivity : AppCompatActivity() {
             when (val result = repository.getAllPosts()) {
                 is NetworkResult.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    // Merge remote posts with locally-created posts.
-                    // Remote posts get createdAt = current time so newest-first
-                    // ordering is consistent. User-created posts keep their
-                    // original timestamps.
                     val remotePosts = result.data
                     val localPosts = postStore.getPosts()
                         .filter { it.id >= Post.LOCAL_ID_BASE }
@@ -285,10 +264,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 is NetworkResult.Error -> {
                     binding.progressBar.visibility = View.GONE
-                    // Network failed — fall back to local posts
                     allPosts = postStore.getPosts()
                     if (allPosts.isEmpty()) {
-                        // Show error state with retry option
                         showEmptyState(
                             result.message,
                             getString(R.string.retry_hint),
@@ -318,9 +295,6 @@ class MainActivity : AppCompatActivity() {
         refreshUi()
     }
 
-    // ---------------------------------------------------------------------
-    // UI state (tabs + search + sort + empty states)
-    // ---------------------------------------------------------------------
 
     private fun refreshUi() {
         if (currentTab == TAB_DRAFTS) {
@@ -425,9 +399,6 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerViewPosts.visibility = View.VISIBLE
     }
 
-    // ---------------------------------------------------------------------
-    // Navigation
-    // ---------------------------------------------------------------------
 
     private fun openPostDetail(post: Post) {
         val intent = Intent(this, PostDetailActivity::class.java)
@@ -441,9 +412,6 @@ class MainActivity : AppCompatActivity() {
         createPostLauncher.launch(intent)
     }
 
-    // ---------------------------------------------------------------------
-    // Create / edit results
-    // ---------------------------------------------------------------------
 
     /**
      * Inserts a successfully published post at the TOP of the feed and
@@ -454,7 +422,6 @@ class MainActivity : AppCompatActivity() {
         val newPost = parsePostOrNull(postJson) ?: return
 
         postStore.addPost(newPost)
-        // Newest first: the freshly created post carries the latest timestamp.
         allPosts = (listOf(newPost) + allPosts)
         if (currentTab != TAB_DRAFTS) {
             binding.recyclerViewPosts.post {
@@ -466,7 +433,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Replaces an edited post in place — its original createdAt (and therefore
+     * Replaces an edited post in place â€” its original createdAt (and therefore
      * its position in the newest-first order) is preserved by the editor.
      * Bookmark/pin/trash flags are merged from the existing copy.
      */
@@ -501,9 +468,6 @@ class MainActivity : AppCompatActivity() {
         null
     }
 
-    // ---------------------------------------------------------------------
-    // Bulk select mode (ActionMode)
-    // ---------------------------------------------------------------------
 
     private val selectionCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -512,7 +476,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            // Hide "Delete Selected" when nothing is selected.
             val deleteItem = menu.findItem(R.id.action_delete_selected)
             deleteItem?.isVisible = adapter.selectedCount() > 0
             return true
@@ -610,13 +573,9 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(binding.root, R.string.posts_restored, Snackbar.LENGTH_SHORT).show()
     }
 
-    // ---------------------------------------------------------------------
-    // Like / bookmark
-    // ---------------------------------------------------------------------
 
     private fun toggleLike(post: Post, position: Int) {
         if (position == RecyclerView.NO_POSITION) return
-        // Local like state; no network, no duplicate toggles possible.
         statsStore.toggleLike(post.id)
         adapter.notifyItemChanged(position)
     }
@@ -633,9 +592,6 @@ class MainActivity : AppCompatActivity() {
         ).show()
     }
 
-    // ---------------------------------------------------------------------
-    // Delete (soft → Trash) + restore
-    // ---------------------------------------------------------------------
 
     /**
      * Swipe a card left/right to trigger the same delete flow as the trash
@@ -656,8 +612,6 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.bindingAdapterPosition
                 if (position == RecyclerView.NO_POSITION) return
                 val post = adapter.currentList.getOrNull(position) ?: return
-                // Restore the swiped card; it moves to Trash only after
-                // confirmation.
                 adapter.notifyItemChanged(position)
                 confirmDeletePost(post)
             }
@@ -678,7 +632,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * Soft delete: the post moves to the Trash (kept locally with a
      * deletedAt timestamp) and can be restored. All feed posts are managed
-     * locally, so this is fully reversible — no fake server restore.
+     * locally, so this is fully reversible â€” no fake server restore.
      */
     private fun softDeletePost(post: Post) {
         if (deletingPostId != null) return
@@ -738,9 +692,6 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    // ---------------------------------------------------------------------
-    // Toolbar menu: sort, trash, my blog, theme, about
-    // ---------------------------------------------------------------------
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -814,7 +765,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 appPrefs.setSortOrder(sortOrder)
                 dialog.dismiss()
-                refreshUi() // in-memory reorder; no reload
+                refreshUi()
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -853,3 +804,4 @@ class MainActivity : AppCompatActivity() {
         private const val TAB_DRAFTS = 2
     }
 }
+

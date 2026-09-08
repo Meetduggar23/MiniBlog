@@ -44,7 +44,6 @@ class PostAdapter(
         val post = getItem(position)
         val context = holder.binding.root.context
 
-        // Selection indicator (visible only while in selection mode).
         val selectView = holder.binding.imageViewSelect
         if (selectionMode) {
             selectView.visibility = android.view.View.VISIBLE
@@ -75,7 +74,6 @@ class PostAdapter(
         }
         holder.binding.textViewBody.text = post.body
 
-        // Tags: subtle "#tag #tag" line, hidden when the post has none.
         if (post.tags.isNotEmpty()) {
             holder.binding.textViewTags.visibility = android.view.View.VISIBLE
             holder.binding.textViewTags.text = post.tags.joinToString("  ") { "#$it" }
@@ -85,11 +83,9 @@ class PostAdapter(
 
         holder.binding.textViewDate.text = PostDateFormatter.format(post.createdAt)
 
-        // Small pinned indicator for feed cards.
         holder.binding.imageViewPinned.visibility =
             if (post.isPinned) android.view.View.VISIBLE else android.view.View.GONE
 
-        // Like state
         val liked = stats.isLiked(post.id)
         holder.binding.buttonLike.setImageResource(
             if (liked) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
@@ -103,7 +99,6 @@ class PostAdapter(
             context.getString(if (liked) R.string.unlike_post else R.string.like_post)
         holder.binding.textViewLikes.text = stats.likeCount(post.id).toString()
 
-        // Bookmark state
         val bookmarked = post.isBookmarked
         holder.binding.buttonBookmark.setImageResource(
             if (bookmarked) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark_outline
@@ -121,7 +116,6 @@ class PostAdapter(
 
         holder.binding.root.setOnClickListener {
             if (selectionMode) {
-                // Tapping a card toggles its selection.
                 holder.bindingAdapterPosition.let { pos ->
                     if (pos != RecyclerView.NO_POSITION) togglePost(post.id)
                 }
@@ -137,7 +131,6 @@ class PostAdapter(
         }
         holder.binding.buttonDelete.setOnClickListener { onDeleteClick(post) }
         holder.binding.buttonLike.setOnClickListener { view ->
-            // Subtle press-pop animation; the state itself flips on rebind.
             view.animate().scaleX(1.25f).scaleY(1.25f).setDuration(110)
                 .withEndAction {
                     view.animate().scaleX(1f).scaleY(1f).setDuration(110).start()
@@ -149,9 +142,6 @@ class PostAdapter(
         }
     }
 
-    // ------------------------------------------------------------------
-    // Selection (bulk) mode API
-    // ------------------------------------------------------------------
 
     fun isSelectionMode(): Boolean = selectionMode
 
@@ -209,3 +199,4 @@ class PostAdapter(
         }
     }
 }
+
