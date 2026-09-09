@@ -50,16 +50,6 @@ Fetches posts from the [DummyJSON](https://dummyjson.com) API (English sample da
 
 ---
 
-## Screenshots
-
-> Add screenshots here after testing on a device/emulator.
-
-| Post List | Post Detail | Create Post |
-|-----------|-------------|-------------|
-| ![List](screenshots/list.png) | ![Detail](screenshots/detail.png) | ![Create](screenshots/create.png) |
-
----
-
 ## What to Test
 
 ### Basic Flow
